@@ -1,4 +1,4 @@
-const cacheName = "multilingual-translator-v4";
+const cacheName = "multilingual-translator-v5";
 const appShell = ["./", "./index.html", "./style.css", "./main.js", "./manifest.webmanifest"];
 
 self.addEventListener("install", (event) => {
@@ -7,6 +7,7 @@ self.addEventListener("install", (event) => {
       return cache.addAll(appShell);
     }),
   );
+  self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
@@ -15,6 +16,7 @@ self.addEventListener("activate", (event) => {
       return Promise.all(keys.filter((key) => key !== cacheName).map((key) => caches.delete(key)));
     }),
   );
+  self.clients.claim();
 });
 
 self.addEventListener("fetch", (event) => {
@@ -23,16 +25,24 @@ self.addEventListener("fetch", (event) => {
   }
 
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      return (
-        cached ||
-        fetch(event.request).catch(() => {
+    fetch(event.request)
+      .then((response) => {
+        const copy = response.clone();
+        caches.open(cacheName).then((cache) => cache.put(event.request, copy));
+        return response;
+      })
+      .catch(() => {
+        return caches.match(event.request).then((cached) => {
+          if (cached) {
+            return cached;
+          }
+
           if (event.request.mode === "navigate") {
             return caches.match("./index.html");
           }
+
           return cached;
-        })
-      );
+        });
     }),
   );
 });

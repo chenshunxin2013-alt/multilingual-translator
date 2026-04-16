@@ -96,6 +96,19 @@ h1 {
   line-height: 1.6;
 }
 
+.version-note {
+  display: inline-flex;
+  margin: 14px 0 0;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-size: 0.88rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
 .translator,
 .side-panel {
   border: 1px solid var(--line);
