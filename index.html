@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#107c63" />
+    <meta
+      name="description"
+      content="A local multilingual translation app with pronunciation, spelling correction, copy, speech, and history."
+    />
+    <title>Multilingual Translator</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" type="image/svg+xml" href="./.launcher-assets/icon.svg" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="workspace" aria-labelledby="appTitle">
+        <div class="intro">
+          <p class="eyebrow">English ⇄ Chinese and more</p>
+          <h1 id="appTitle">Translate, pronounce, and polish.</h1>
+          <p class="intro-copy">
+            Choose your languages, correct spelling mistakes, hear pronunciation, and save useful lines as you work.
+          </p>
+        </div>
+
+        <form id="translateForm" class="translator" autocomplete="off">
+          <div class="language-row" aria-label="Translation languages">
+            <label class="select-field" for="sourceLanguage">
+              From
+              <select id="sourceLanguage"></select>
+            </label>
+            <label class="select-field" for="targetLanguage">
+              To
+              <select id="targetLanguage"></select>
+            </label>
+            <button id="swapButton" class="swap-button" type="button" aria-label="Swap languages">
+              Swap
+            </button>
+          </div>
+
+          <div class="panes">
+            <label class="pane" for="sourceText">
+              <span id="sourceLabel" class="pane-label">English</span>
+              <textarea
+                id="sourceText"
+                rows="10"
+                maxlength="30000"
+                placeholder="Write or paste English here..."
+                autofocus
+              ></textarea>
+              <span id="countValue" class="counter">0 words / 30000 characters</span>
+            </label>
+
+            <section class="pane output-pane" aria-labelledby="resultLabel">
+              <div class="output-heading">
+                <span id="resultLabel" class="pane-label">Chinese</span>
+                <span id="statusValue" class="status">Ready</span>
+              </div>
+              <div id="resultText" class="result-text" tabindex="0">Translation will appear here.</div>
+              <div class="definitions-box" aria-labelledby="definitionsTitle">
+                <h2 id="definitionsTitle">Other translations</h2>
+                <ol id="definitionList" class="definition-list" aria-live="polite"></ol>
+              </div>
+            </section>
+          </div>
+
+          <div class="actions">
+            <button id="translateButton" class="primary-button" type="submit">Translate</button>
+            <button id="correctButton" class="secondary-button" type="button">Correct spelling</button>
+            <button id="speakSourceButton" class="secondary-button" type="button">Speak input</button>
+            <button id="copyButton" class="secondary-button" type="button">Copy result</button>
+            <button id="speakButton" class="secondary-button" type="button">Speak result</button>
+            <button id="clearButton" class="text-button" type="button">Clear</button>
+          </div>
+        </form>
+      </section>
+
+      <aside class="side-panel" aria-label="Translation notes and history">
+        <img
+          class="language-image"
+          src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=900&q=80"
+          alt="A glowing world map seen from space"
+        />
+        <section class="note-block">
+          <h2>Quick Tips</h2>
+          <p>Press Command Enter to translate. Press Correct spelling before translating when a sentence looks off.</p>
+          <p>Use Simple words when you want a shorter, easier English version.</p>
+        </section>
+        <section class="simplify-block" aria-labelledby="simplifyTitle">
+          <h2 id="simplifyTitle">Simple words</h2>
+          <p>Make English text easier to read before translating or speaking it.</p>
+          <button id="simplifyButton" class="secondary-button" type="button">Simplify input</button>
+          <div id="simplifiedText" class="simplified-text" tabindex="0">Simplified text will appear here.</div>
+        </section>
+        <section class="history-block">
+          <div class="history-heading">
+            <h2>Recent</h2>
+            <button id="clearHistoryButton" class="text-button small" type="button">Clear history</button>
+          </div>
+          <ol id="historyList" class="history-list" aria-live="polite"></ol>
+        </section>
+      </aside>
+    </main>
+
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>
