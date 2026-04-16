@@ -71,6 +71,7 @@
             <button id="speakSourceButton" class="secondary-button" type="button">Speak input</button>
             <button id="copyButton" class="secondary-button" type="button">Copy result</button>
             <button id="speakButton" class="secondary-button" type="button">Speak result</button>
+            <button id="saveButton" class="secondary-button" type="button">Save</button>
             <button id="clearButton" class="text-button" type="button">Clear</button>
           </div>
         </form>
@@ -87,11 +88,42 @@
           <p>Press Command Enter to translate. Press Correct spelling before translating when a sentence looks off.</p>
           <p>Use Simple words when you want a shorter, easier English version.</p>
         </section>
+        <section class="details-block" aria-labelledby="detailsTitle">
+          <h2 id="detailsTitle">Language details</h2>
+          <dl class="details-list">
+            <div>
+              <dt>Detected input</dt>
+              <dd id="detectedLanguageValue">No text yet</dd>
+            </div>
+            <div>
+              <dt>Text size</dt>
+              <dd id="textSizeValue">0 words, 0 characters</dd>
+            </div>
+            <div>
+              <dt>Reading time</dt>
+              <dd id="readingTimeValue">0 min</dd>
+            </div>
+          </dl>
+        </section>
         <section class="simplify-block" aria-labelledby="simplifyTitle">
           <h2 id="simplifyTitle">Simple words</h2>
           <p>Make English text easier to read before translating or speaking it.</p>
-          <button id="simplifyButton" class="secondary-button" type="button">Simplify input</button>
+          <div class="button-row">
+            <button id="simplifyButton" class="secondary-button" type="button">Simplify input</button>
+            <button id="useSimplifiedButton" class="secondary-button" type="button">Use simplified</button>
+          </div>
           <div id="simplifiedText" class="simplified-text" tabindex="0">Simplified text will appear here.</div>
+        </section>
+        <section class="phrase-block" aria-labelledby="phraseTitle">
+          <h2 id="phraseTitle">Common phrases</h2>
+          <div id="phraseList" class="phrase-list" aria-live="polite"></div>
+        </section>
+        <section class="saved-block" aria-labelledby="savedTitle">
+          <div class="history-heading">
+            <h2 id="savedTitle">Saved</h2>
+            <button id="clearSavedButton" class="text-button small" type="button">Clear saved</button>
+          </div>
+          <ol id="savedList" class="history-list" aria-live="polite"></ol>
         </section>
         <section class="history-block">
           <div class="history-heading">

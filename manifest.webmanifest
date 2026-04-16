@@ -1,7 +1,7 @@
 {
   "name": "Multilingual Translator",
   "short_name": "Translator",
-  "description": "Translate between languages with pronunciation, spelling correction, alternate meanings, and simple English wording.",
+  "description": "Translate between languages with pronunciation, spelling correction, alternate meanings, simple wording, phrase shortcuts, details, and saved translations.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

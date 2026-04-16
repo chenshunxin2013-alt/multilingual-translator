@@ -4,25 +4,34 @@ const translateForm = document.getElementById("translateForm");
 const translateButton = document.getElementById("translateButton");
 const correctButton = document.getElementById("correctButton");
 const simplifyButton = document.getElementById("simplifyButton");
+const useSimplifiedButton = document.getElementById("useSimplifiedButton");
 const copyButton = document.getElementById("copyButton");
 const speakButton = document.getElementById("speakButton");
 const speakSourceButton = document.getElementById("speakSourceButton");
+const saveButton = document.getElementById("saveButton");
 const clearButton = document.getElementById("clearButton");
 const swapButton = document.getElementById("swapButton");
 const clearHistoryButton = document.getElementById("clearHistoryButton");
+const clearSavedButton = document.getElementById("clearSavedButton");
 const historyList = document.getElementById("historyList");
+const savedList = document.getElementById("savedList");
 const statusValue = document.getElementById("statusValue");
 const countValue = document.getElementById("countValue");
+const detectedLanguageValue = document.getElementById("detectedLanguageValue");
+const textSizeValue = document.getElementById("textSizeValue");
+const readingTimeValue = document.getElementById("readingTimeValue");
 const sourceLabel = document.getElementById("sourceLabel");
 const resultLabel = document.getElementById("resultLabel");
 const sourceLanguage = document.getElementById("sourceLanguage");
 const targetLanguage = document.getElementById("targetLanguage");
 const definitionList = document.getElementById("definitionList");
 const simplifiedText = document.getElementById("simplifiedText");
+const phraseList = document.getElementById("phraseList");
 
 const maxCharacters = Number(sourceText.maxLength);
 const chunkSize = 460;
 const historyKey = "multilingual-translator-history";
+const savedKey = "multilingual-translator-saved";
 
 const languages = [
   { code: "en", speech: "en-US", correction: "en-US", name: "English", placeholder: "Write or paste English here..." },
@@ -101,7 +110,101 @@ const simplerWords = new Map([
   ["utilize", "use"],
 ]);
 
+const commonPhrases = [
+  {
+    intent: "Greeting",
+    phrases: {
+      en: "Hello, nice to meet you.",
+      "zh-CN": "你好，很高兴认识你。",
+      "zh-TW": "你好，很高興認識你。",
+      es: "Hola, mucho gusto.",
+      fr: "Bonjour, ravi de vous rencontrer.",
+      ja: "こんにちは、はじめまして。",
+      ko: "안녕하세요, 만나서 반갑습니다.",
+      de: "Hallo, freut mich, Sie kennenzulernen.",
+      it: "Ciao, piacere di conoscerti.",
+      pt: "Ola, prazer em conhecer voce.",
+      ru: "Здравствуйте, приятно познакомиться.",
+      ar: "مرحبا، سعيد بلقائك.",
+      hi: "नमस्ते, आपसे मिलकर खुशी हुई।",
+    },
+  },
+  {
+    intent: "Help",
+    phrases: {
+      en: "Can you help me?",
+      "zh-CN": "你能帮我吗？",
+      "zh-TW": "你能幫我嗎？",
+      es: "Puedes ayudarme?",
+      fr: "Pouvez-vous m'aider?",
+      ja: "手伝ってくれますか。",
+      ko: "도와주실 수 있나요?",
+      de: "Koennen Sie mir helfen?",
+      it: "Puoi aiutarmi?",
+      pt: "Voce pode me ajudar?",
+      ru: "Вы можете мне помочь?",
+      ar: "هل يمكنك مساعدتي؟",
+      hi: "क्या आप मेरी मदद कर सकते हैं?",
+    },
+  },
+  {
+    intent: "Price",
+    phrases: {
+      en: "How much does this cost?",
+      "zh-CN": "这个多少钱？",
+      "zh-TW": "這個多少錢？",
+      es: "Cuanto cuesta esto?",
+      fr: "Combien ca coute?",
+      ja: "これはいくらですか。",
+      ko: "이거 얼마인가요?",
+      de: "Wie viel kostet das?",
+      it: "Quanto costa questo?",
+      pt: "Quanto custa isto?",
+      ru: "Сколько это стоит?",
+      ar: "كم سعر هذا؟",
+      hi: "इसकी कीमत कितनी है?",
+    },
+  },
+  {
+    intent: "Directions",
+    phrases: {
+      en: "Where is the nearest station?",
+      "zh-CN": "最近的车站在哪里？",
+      "zh-TW": "最近的車站在哪裡？",
+      es: "Donde esta la estacion mas cercana?",
+      fr: "Ou est la gare la plus proche?",
+      ja: "最寄りの駅はどこですか。",
+      ko: "가장 가까운 역이 어디인가요?",
+      de: "Wo ist der naechste Bahnhof?",
+      it: "Dove si trova la stazione piu vicina?",
+      pt: "Onde fica a estacao mais proxima?",
+      ru: "Где ближайшая станция?",
+      ar: "أين أقرب محطة؟",
+      hi: "सबसे नजदीकी स्टेशन कहाँ है?",
+    },
+  },
+  {
+    intent: "Food",
+    phrases: {
+      en: "I would like to order this.",
+      "zh-CN": "我想点这个。",
+      "zh-TW": "我想點這個。",
+      es: "Me gustaria pedir esto.",
+      fr: "Je voudrais commander ceci.",
+      ja: "これを注文したいです。",
+      ko: "이것을 주문하고 싶어요.",
+      de: "Ich moechte das bestellen.",
+      it: "Vorrei ordinare questo.",
+      pt: "Eu gostaria de pedir isto.",
+      ru: "Я хотел бы заказать это.",
+      ar: "أود طلب هذا.",
+      hi: "मैं यह ऑर्डर करना चाहता हूँ।",
+    },
+  },
+];
+
 let history = loadHistory();
+let savedTranslations = loadSaved();
 let activeRequest = null;
 let availableVoices = [];
 
@@ -139,6 +242,8 @@ function updateLabels() {
   resultLabel.textContent = target.name;
   sourceText.placeholder = source.placeholder;
   renderDefinitions([]);
+  renderPhrases();
+  updateDetails();
 }
 
 function countWords(value) {
@@ -162,6 +267,38 @@ function countWords(value) {
 
 function updateCount() {
   countValue.textContent = `${countWords(sourceText.value)} words / ${sourceText.value.length} of ${maxCharacters} characters`;
+  updateDetails();
+}
+
+function detectLanguage(text) {
+  const value = text.trim();
+
+  if (!value) {
+    return "No text yet";
+  }
+
+  const signals = [
+    { pattern: /[\u4e00-\u9fff]/, name: "Chinese" },
+    { pattern: /[\u3040-\u30ff]/, name: "Japanese" },
+    { pattern: /[\uac00-\ud7af]/, name: "Korean" },
+    { pattern: /[\u0400-\u04ff]/, name: "Russian" },
+    { pattern: /[\u0600-\u06ff]/, name: "Arabic" },
+    { pattern: /[\u0900-\u097f]/, name: "Hindi" },
+    { pattern: /\b(el|la|los|las|gracias|hola|por favor)\b/i, name: "Spanish" },
+    { pattern: /\b(le|la|les|bonjour|merci|avec|pour)\b/i, name: "French" },
+    { pattern: /\b(der|die|das|und|bitte|danke)\b/i, name: "German" },
+    { pattern: /\b(the|and|please|hello|thank|where)\b/i, name: "English" },
+  ];
+  return signals.find((signal) => signal.pattern.test(value))?.name ?? "Unknown";
+}
+
+function updateDetails() {
+  const words = countWords(sourceText.value);
+  const characters = sourceText.value.length;
+  const minutes = words === 0 ? 0 : Math.max(1, Math.ceil(words / 180));
+  detectedLanguageValue.textContent = detectLanguage(sourceText.value);
+  textSizeValue.textContent = `${words} words, ${characters} characters`;
+  readingTimeValue.textContent = `${minutes} min`;
 }
 
 function getOfflineTranslation(text) {
@@ -454,6 +591,15 @@ function loadHistory() {
   }
 }
 
+function loadSaved() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(savedKey) ?? "[]");
+    return Array.isArray(stored) ? stored.slice(0, 12) : [];
+  } catch {
+    return [];
+  }
+}
+
 function saveHistory(source, result) {
   const nextEntry = {
     sourceCode: sourceLanguage.value,
@@ -476,6 +622,74 @@ function saveHistory(source, result) {
   renderHistory();
 }
 
+function saveCurrentTranslation() {
+  const source = sourceText.value.trim();
+  const result = resultText.textContent.trim();
+
+  if (!source || !result || result === "Translation will appear here.") {
+    setStatus("Nothing to save");
+    return;
+  }
+
+  const nextEntry = {
+    sourceCode: sourceLanguage.value,
+    targetCode: targetLanguage.value,
+    source,
+    result,
+    createdAt: new Date().toISOString(),
+  };
+  savedTranslations = [
+    nextEntry,
+    ...savedTranslations.filter(
+      (item) =>
+        item.source !== source ||
+        item.result !== result ||
+        item.sourceCode !== sourceLanguage.value ||
+        item.targetCode !== targetLanguage.value,
+    ),
+  ].slice(0, 12);
+  localStorage.setItem(savedKey, JSON.stringify(savedTranslations));
+  renderSaved();
+  setStatus("Saved");
+}
+
+function createStoredTranslationItem(item) {
+  const historyItem = document.createElement("li");
+  historyItem.className = "history-item";
+
+  const button = document.createElement("button");
+  button.type = "button";
+  button.addEventListener("click", () => {
+    sourceLanguage.value = item.sourceCode ?? "en";
+    targetLanguage.value = item.targetCode ?? "zh-CN";
+    sourceText.value = item.source;
+    resultText.textContent = item.result;
+    simplifiedText.textContent = "Simplified text will appear here.";
+    setStatus("Loaded");
+    updateLabels();
+    updateCount();
+    sourceText.focus();
+  });
+
+  const direction = document.createElement("span");
+  direction.className = "history-direction";
+  direction.textContent = `${getLanguage(item.sourceCode ?? "en").name} to ${
+    getLanguage(item.targetCode ?? "zh-CN").name
+  }`;
+
+  const source = document.createElement("span");
+  source.className = "history-source";
+  source.textContent = item.source;
+
+  const result = document.createElement("span");
+  result.className = "history-result";
+  result.textContent = item.result;
+
+  button.append(direction, source, result);
+  historyItem.append(button);
+  return historyItem;
+}
+
 function renderHistory() {
   historyList.innerHTML = "";
 
@@ -488,39 +702,48 @@ function renderHistory() {
   }
 
   history.forEach((item) => {
-    const historyItem = document.createElement("li");
-    historyItem.className = "history-item";
+    historyList.append(createStoredTranslationItem(item));
+  });
+}
 
+function renderSaved() {
+  savedList.innerHTML = "";
+
+  if (savedTranslations.length === 0) {
+    const empty = document.createElement("li");
+    empty.className = "empty-history";
+    empty.textContent = "Save important translations here.";
+    savedList.append(empty);
+    return;
+  }
+
+  savedTranslations.forEach((item) => {
+    savedList.append(createStoredTranslationItem(item));
+  });
+}
+
+function renderPhrases() {
+  phraseList.innerHTML = "";
+  const sourceCode = sourceLanguage.value;
+  const hasCurrentLanguage = commonPhrases.some((item) => item.phrases[sourceCode]);
+
+  commonPhrases.forEach((item) => {
     const button = document.createElement("button");
     button.type = "button";
+    button.className = "phrase-chip";
+    button.textContent = `${item.intent}: ${item.phrases[sourceCode] ?? item.phrases.en}`;
     button.addEventListener("click", () => {
-      sourceLanguage.value = item.sourceCode ?? "en";
-      targetLanguage.value = item.targetCode ?? "zh-CN";
-      sourceText.value = item.source;
-      resultText.textContent = item.result;
-      setStatus("Loaded");
+      if (!hasCurrentLanguage) {
+        sourceLanguage.value = "en";
+      }
+      sourceText.value = item.phrases[sourceLanguage.value] ?? item.phrases.en;
+      resultText.textContent = "Translation will appear here.";
+      simplifiedText.textContent = "Simplified text will appear here.";
       updateLabels();
       updateCount();
-      sourceText.focus();
+      translateText();
     });
-
-    const direction = document.createElement("span");
-    direction.className = "history-direction";
-    direction.textContent = `${getLanguage(item.sourceCode ?? "en").name} to ${
-      getLanguage(item.targetCode ?? "zh-CN").name
-    }`;
-
-    const source = document.createElement("span");
-    source.className = "history-source";
-    source.textContent = item.source;
-
-    const result = document.createElement("span");
-    result.className = "history-result";
-    result.textContent = item.result;
-
-    button.append(direction, source, result);
-    historyItem.append(button);
-    historyList.append(historyItem);
+    phraseList.append(button);
   });
 }
 
@@ -572,6 +795,21 @@ function simplifyInput() {
   const simplified = simplifyEnglishText(text);
   simplifiedText.textContent = simplified === text ? "This already looks simple." : simplified;
   setStatus("Simplified");
+}
+
+function useSimplifiedText() {
+  const text = simplifiedText.textContent.trim();
+
+  if (!text || text === "Simplified text will appear here." || text === "This already looks simple.") {
+    setStatus("Nothing simplified");
+    return;
+  }
+
+  sourceText.value = text;
+  resultText.textContent = "Translation will appear here.";
+  updateCount();
+  setStatus("Simplified text loaded");
+  sourceText.focus();
 }
 
 async function copyResult() {
@@ -671,7 +909,11 @@ translateForm.addEventListener("submit", (event) => {
   translateText();
 });
 
-sourceText.addEventListener("input", updateCount);
+sourceText.addEventListener("input", () => {
+  updateCount();
+  resultText.textContent = "Translation will appear here.";
+  renderDefinitions([]);
+});
 
 sourceText.addEventListener("keydown", (event) => {
   if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
@@ -693,9 +935,11 @@ targetLanguage.addEventListener("change", () => {
 swapButton.addEventListener("click", swapLanguages);
 correctButton.addEventListener("click", correctSpelling);
 simplifyButton.addEventListener("click", simplifyInput);
+useSimplifiedButton.addEventListener("click", useSimplifiedText);
 copyButton.addEventListener("click", copyResult);
 speakButton.addEventListener("click", speakResult);
 speakSourceButton.addEventListener("click", speakSource);
+saveButton.addEventListener("click", saveCurrentTranslation);
 
 clearButton.addEventListener("click", () => {
   sourceText.value = "";
@@ -712,6 +956,13 @@ clearHistoryButton.addEventListener("click", () => {
   localStorage.removeItem(historyKey);
   renderHistory();
   setStatus("History cleared");
+});
+
+clearSavedButton.addEventListener("click", () => {
+  savedTranslations = [];
+  localStorage.removeItem(savedKey);
+  renderSaved();
+  setStatus("Saved cleared");
 });
 
 if ("serviceWorker" in navigator) {
@@ -734,4 +985,5 @@ if ("speechSynthesis" in window) {
 updateLabels();
 updateCount();
 renderHistory();
+renderSaved();
 renderDefinitions([]);

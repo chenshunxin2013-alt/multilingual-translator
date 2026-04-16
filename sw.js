@@ -1,4 +1,4 @@
-const cacheName = "multilingual-translator-v3";
+const cacheName = "multilingual-translator-v4";
 const appShell = ["./", "./index.html", "./style.css", "./main.js", "./manifest.webmanifest"];
 
 self.addEventListener("install", (event) => {

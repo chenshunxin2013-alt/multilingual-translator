@@ -10,6 +10,9 @@ A browser-based translator that can run locally or be published as a static webs
 - Spelling correction
 - Alternate translation meanings
 - Simple English wording section
+- Common phrase shortcuts
+- Language details with detected input, text size, and reading time
+- Saved translations
 - Recent translation history saved on this computer
 - Progressive Web App support through `manifest.webmanifest` and `sw.js`
 
