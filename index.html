@@ -83,78 +83,91 @@
       </section>
 
       <aside class="side-panel" aria-label="Translation tools and history">
-        <img
-          class="language-image"
-          src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=900&q=80"
-          alt="A glowing world map seen from space"
-        />
-        <section class="pronunciation-block" aria-labelledby="pronunciationTitle">
-          <h2 id="pronunciationTitle">Pronunciation</h2>
-          <div class="panel-grid">
-            <div class="mini-panel">
-              <span class="mini-label">Input guide</span>
-              <div id="sourcePronunciation" class="mini-text" tabindex="0">Pronunciation guide will appear here.</div>
+        <div class="side-top">
+          <img
+            class="language-image"
+            src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=900&q=80"
+            alt="A glowing world map seen from space"
+          />
+          <div class="side-top-copy">
+            <p class="side-kicker">Quick Access</p>
+            <h2>Use the tools you need first.</h2>
+          </div>
+        </div>
+
+        <section class="quick-access-block" aria-label="Quick access tools">
+          <section class="phrase-block quick-panel" aria-labelledby="phraseTitle">
+            <h2 id="phraseTitle">Common phrases</h2>
+            <div id="phraseList" class="phrase-list" aria-live="polite"></div>
+          </section>
+
+          <div class="quick-history-stack">
+            <section class="saved-block quick-panel" aria-labelledby="savedTitle">
+              <div class="history-heading">
+                <h2 id="savedTitle">Saved</h2>
+                <button id="clearSavedButton" class="text-button small" type="button">Clear saved</button>
+              </div>
+              <ol id="savedList" class="history-list" aria-live="polite"></ol>
+            </section>
+
+            <section class="history-block quick-panel">
+              <div class="history-heading">
+                <h2>Recent</h2>
+                <button id="clearHistoryButton" class="text-button small" type="button">Clear history</button>
+              </div>
+              <ol id="historyList" class="history-list" aria-live="polite"></ol>
+            </section>
+          </div>
+        </section>
+
+        <div class="tool-stack">
+          <section class="pronunciation-block" aria-labelledby="pronunciationTitle">
+            <h2 id="pronunciationTitle">Pronunciation</h2>
+            <div class="panel-grid">
+              <div class="mini-panel">
+                <span class="mini-label">Input guide</span>
+                <div id="sourcePronunciation" class="mini-text" tabindex="0">Pronunciation guide will appear here.</div>
+              </div>
+              <div class="mini-panel">
+                <span class="mini-label">Result guide</span>
+                <div id="resultPronunciation" class="mini-text" tabindex="0">Translated pronunciation will appear here.</div>
+              </div>
             </div>
-            <div class="mini-panel">
-              <span class="mini-label">Result guide</span>
-              <div id="resultPronunciation" class="mini-text" tabindex="0">Translated pronunciation will appear here.</div>
+          </section>
+
+          <section class="spelling-block" aria-labelledby="spellingTitle">
+            <h2 id="spellingTitle">Spelling helper</h2>
+            <p>Check mistakes, see likely fixes, and keep the corrected version ready for translation.</p>
+            <div id="spellingStatus" class="mini-text" tabindex="0">No spelling suggestions yet.</div>
+          </section>
+
+          <section class="english-block" aria-labelledby="englishTitle">
+            <h2 id="englishTitle">English to English</h2>
+            <p>Explain the text in plain English, even when you only typed one unfinished word.</p>
+            <button id="explainEnglishButton" class="secondary-button" type="button">Explain in English</button>
+            <div id="englishText" class="simplified-text" tabindex="0">English explanation will appear here.</div>
+          </section>
+
+          <section class="simplify-block" aria-labelledby="simplifyTitle">
+            <h2 id="simplifyTitle">Simple words</h2>
+            <p>Make English text easier to read before translating or speaking it.</p>
+            <div class="button-row">
+              <button id="simplifyButton" class="secondary-button" type="button">Simplify input</button>
+              <button id="useSimplifiedButton" class="secondary-button" type="button">Use simplified</button>
             </div>
-          </div>
-        </section>
+            <div id="simplifiedText" class="simplified-text" tabindex="0">Simplified text will appear here.</div>
+          </section>
 
-        <section class="spelling-block" aria-labelledby="spellingTitle">
-          <h2 id="spellingTitle">Spelling helper</h2>
-          <p>Check mistakes, see likely fixes, and keep the corrected version ready for translation.</p>
-          <div id="spellingStatus" class="mini-text" tabindex="0">No spelling suggestions yet.</div>
-        </section>
+          <section class="examples-block" aria-labelledby="examplesTitle">
+            <h2 id="examplesTitle">Example uses</h2>
+            <div id="exampleList" class="stack-list" aria-live="polite"></div>
+          </section>
 
-        <section class="simplify-block" aria-labelledby="simplifyTitle">
-          <h2 id="simplifyTitle">Simple words</h2>
-          <p>Make English text easier to read before translating or speaking it.</p>
-          <div class="button-row">
-            <button id="simplifyButton" class="secondary-button" type="button">Simplify input</button>
-            <button id="useSimplifiedButton" class="secondary-button" type="button">Use simplified</button>
-          </div>
-          <div id="simplifiedText" class="simplified-text" tabindex="0">Simplified text will appear here.</div>
-        </section>
-
-        <section class="english-block" aria-labelledby="englishTitle">
-          <h2 id="englishTitle">English to English</h2>
-          <p>Explain the text in plain English, even when you only typed one unfinished word.</p>
-          <button id="explainEnglishButton" class="secondary-button" type="button">Explain in English</button>
-          <div id="englishText" class="simplified-text" tabindex="0">English explanation will appear here.</div>
-        </section>
-
-        <section class="examples-block" aria-labelledby="examplesTitle">
-          <h2 id="examplesTitle">Example uses</h2>
-          <div id="exampleList" class="stack-list" aria-live="polite"></div>
-        </section>
-
-        <section class="insights-block" aria-labelledby="insightsTitle">
-          <h2 id="insightsTitle">Word insights</h2>
-          <div id="insightList" class="stack-list" aria-live="polite"></div>
-        </section>
-
-        <section class="phrase-block" aria-labelledby="phraseTitle">
-          <h2 id="phraseTitle">Common phrases</h2>
-          <div id="phraseList" class="phrase-list" aria-live="polite"></div>
-        </section>
-
-        <section class="saved-block" aria-labelledby="savedTitle">
-          <div class="history-heading">
-            <h2 id="savedTitle">Saved</h2>
-            <button id="clearSavedButton" class="text-button small" type="button">Clear saved</button>
-          </div>
-          <ol id="savedList" class="history-list" aria-live="polite"></ol>
-        </section>
-
-        <section class="history-block">
-          <div class="history-heading">
-            <h2>Recent</h2>
-            <button id="clearHistoryButton" class="text-button small" type="button">Clear history</button>
-          </div>
-          <ol id="historyList" class="history-list" aria-live="polite"></ol>
-        </section>
+          <section class="insights-block" aria-labelledby="insightsTitle">
+            <h2 id="insightsTitle">Word insights</h2>
+            <div id="insightList" class="stack-list" aria-live="polite"></div>
+          </section>
+        </div>
       </aside>
     </main>
 
