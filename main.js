@@ -5,6 +5,7 @@ const translateButton = document.getElementById("translateButton");
 const correctButton = document.getElementById("correctButton");
 const simplifyButton = document.getElementById("simplifyButton");
 const useSimplifiedButton = document.getElementById("useSimplifiedButton");
+const explainEnglishButton = document.getElementById("explainEnglishButton");
 const copyButton = document.getElementById("copyButton");
 const speakButton = document.getElementById("speakButton");
 const speakSourceButton = document.getElementById("speakSourceButton");
@@ -26,6 +27,7 @@ const sourceLanguage = document.getElementById("sourceLanguage");
 const targetLanguage = document.getElementById("targetLanguage");
 const definitionList = document.getElementById("definitionList");
 const simplifiedText = document.getElementById("simplifiedText");
+const englishText = document.getElementById("englishText");
 const phraseList = document.getElementById("phraseList");
 
 const maxCharacters = Number(sourceText.maxLength);
@@ -203,6 +205,23 @@ const commonPhrases = [
   },
 ];
 
+const englishMeanings = new Map([
+  ["hello", "a friendly greeting you say when you meet someone"],
+  ["translate", "to change words from one language into another language"],
+  ["translation", "words that have been changed from one language into another"],
+  ["simplify", "to make something easier to understand"],
+  ["phrase", "a small group of words that work together"],
+  ["greeting", "words you use to welcome or meet someone"],
+  ["help", "support or assistance for someone who needs it"],
+  ["price", "the amount of money something costs"],
+  ["station", "a place where buses or trains stop"],
+  ["order", "to ask for food, goods, or services"],
+  ["language", "a system of words people use to speak and write"],
+  ["pronunciation", "the way a word is spoken"],
+  ["unfinished", "not completed yet"],
+  ["word", "a single unit of language with meaning"],
+]);
+
 let history = loadHistory();
 let savedTranslations = loadSaved();
 let activeRequest = null;
@@ -248,6 +267,56 @@ function updateLabels() {
   updateDetails();
 }
 
+function getEnglishSourceText() {
+  if (sourceLanguage.value === "en" && sourceText.value.trim()) {
+    return sourceText.value.trim();
+  }
+
+  if (targetLanguage.value === "en" && resultText.textContent.trim() && resultText.textContent.trim() !== "Translation will appear here.") {
+    return resultText.textContent.trim();
+  }
+
+  return sourceText.value.trim();
+}
+
+function explainEnglishValue(text) {
+  const cleaned = normalizeText(text);
+
+  if (!cleaned) {
+    return "Type English text first.";
+  }
+
+  const lower = cleaned.toLowerCase();
+  const directMeaning = englishMeanings.get(lower);
+  if (directMeaning) {
+    return `${cleaned}: ${directMeaning}.`;
+  }
+
+  const simplified = simplifyEnglishText(cleaned);
+  if (cleaned.split(" ").length === 1) {
+    const prefixMatches = [...englishMeanings.keys()].filter((word) => word.startsWith(lower)).slice(0, 3);
+    if (prefixMatches.length > 0) {
+      return `This looks like the start of ${prefixMatches.join(", ")}.`;
+    }
+
+    if (simplified !== cleaned) {
+      return `${cleaned} can be said more simply as ${simplified}.`;
+    }
+
+    return `${cleaned} is an English word or part of a word. Type a little more and I will explain it better.`;
+  }
+
+  if (simplified !== cleaned) {
+    return `In plain English: ${simplified}.`;
+  }
+
+  return `Plain English meaning: ${cleaned}.`;
+}
+
+function updateEnglishExplanation() {
+  englishText.textContent = explainEnglishValue(getEnglishSourceText());
+}
+
 function countWords(value) {
   const trimmed = value.trim();
 
@@ -270,6 +339,7 @@ function countWords(value) {
 function updateCount() {
   countValue.textContent = `${countWords(sourceText.value)} words / ${sourceText.value.length} of ${maxCharacters} characters`;
   updateDetails();
+  updateEnglishExplanation();
 }
 
 function detectLanguage(text) {
@@ -817,6 +887,7 @@ function simplifyInput() {
   const simplified = simplifyEnglishText(text);
   simplifiedText.textContent = simplified === text ? "This already looks simple." : simplified;
   setStatus("Simplified");
+  updateEnglishExplanation();
 }
 
 function useSimplifiedText() {
@@ -832,6 +903,11 @@ function useSimplifiedText() {
   updateCount();
   setStatus("Simplified text loaded");
   sourceText.focus();
+}
+
+function explainInEnglish() {
+  updateEnglishExplanation();
+  setStatus("Explained in English");
 }
 
 async function copyResult() {
@@ -960,6 +1036,7 @@ swapButton.addEventListener("click", swapLanguages);
 correctButton.addEventListener("click", correctSpelling);
 simplifyButton.addEventListener("click", simplifyInput);
 useSimplifiedButton.addEventListener("click", useSimplifiedText);
+explainEnglishButton.addEventListener("click", explainInEnglish);
 copyButton.addEventListener("click", copyResult);
 speakButton.addEventListener("click", speakResult);
 speakSourceButton.addEventListener("click", speakSource);
@@ -969,6 +1046,7 @@ clearButton.addEventListener("click", () => {
   sourceText.value = "";
   resultText.textContent = "Translation will appear here.";
   simplifiedText.textContent = "Simplified text will appear here.";
+  englishText.textContent = "English explanation will appear here.";
   renderDefinitions([]);
   updateCount();
   setStatus("Cleared");
@@ -1011,3 +1089,4 @@ updateCount();
 renderHistory();
 renderSaved();
 renderDefinitions([]);
+updateEnglishExplanation();

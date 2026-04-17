@@ -369,6 +369,7 @@ button:disabled {
 .note-block,
 .details-block,
 .simplify-block,
+.english-block,
 .phrase-block,
 .saved-block,
 .history-block {
@@ -378,12 +379,14 @@ button:disabled {
 .note-block,
 .details-block,
 .simplify-block,
+.english-block,
 .saved-block {
   border-bottom: 1px solid var(--line);
 }
 
 .note-block h2,
 .details-block h2,
+.english-block h2,
 .phrase-block h2,
 .history-block h2 {
   margin-bottom: 10px;
@@ -429,6 +432,16 @@ button:disabled {
   margin-bottom: 12px;
   color: var(--muted);
   line-height: 1.55;
+}
+
+.english-block p {
+  margin-bottom: 12px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.english-block .secondary-button {
+  width: 100%;
 }
 
 .button-row {
