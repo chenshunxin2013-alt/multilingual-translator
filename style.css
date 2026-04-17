@@ -366,7 +366,6 @@ button:disabled {
   object-fit: cover;
 }
 
-.note-block,
 .details-block,
 .simplify-block,
 .english-block,
@@ -376,7 +375,6 @@ button:disabled {
   padding: 18px;
 }
 
-.note-block,
 .details-block,
 .simplify-block,
 .english-block,
@@ -384,23 +382,12 @@ button:disabled {
   border-bottom: 1px solid var(--line);
 }
 
-.note-block h2,
 .details-block h2,
 .english-block h2,
 .phrase-block h2,
 .history-block h2 {
   margin-bottom: 10px;
   font-size: 1rem;
-}
-
-.note-block p {
-  margin-bottom: 10px;
-  color: var(--muted);
-  line-height: 1.55;
-}
-
-.note-block p:last-child {
-  margin-bottom: 0;
 }
 
 .details-list {
