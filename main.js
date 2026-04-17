@@ -207,6 +207,8 @@ let history = loadHistory();
 let savedTranslations = loadSaved();
 let activeRequest = null;
 let availableVoices = [];
+let autoTranslateTimer = null;
+let latestRequestId = 0;
 
 function populateLanguages() {
   const options = languages
@@ -403,6 +405,7 @@ async function translateOnline(text) {
 
 async function translateText() {
   const text = sourceText.value.trim();
+  const requestId = ++latestRequestId;
 
   if (!text) {
     resultText.textContent = "Type something first.";
@@ -429,6 +432,9 @@ async function translateText() {
 
   try {
     const translated = await translateOnline(text);
+    if (requestId !== latestRequestId) {
+      return;
+    }
     resultText.textContent = translated.text;
     renderDefinitions(getAlternativeTranslations(translated.matches, translated.text));
     setStatus("Online result");
@@ -439,6 +445,9 @@ async function translateText() {
     }
 
     const fallback = getOfflineTranslation(text);
+    if (requestId !== latestRequestId) {
+      return;
+    }
     resultText.textContent =
       fallback ||
       "The online translator could not be reached. Try a common short phrase, or check the internet connection.";
@@ -453,6 +462,19 @@ async function translateText() {
     simplifyButton.disabled = false;
     activeRequest = null;
   }
+}
+
+function queueAutoTranslate() {
+  clearTimeout(autoTranslateTimer);
+
+  const text = sourceText.value.trim();
+  if (!text) {
+    return;
+  }
+
+  autoTranslateTimer = setTimeout(() => {
+    translateText();
+  }, 450);
 }
 
 function getAlternativeTranslations(matches, mainTranslation) {
@@ -913,11 +935,13 @@ sourceText.addEventListener("input", () => {
   updateCount();
   resultText.textContent = "Translation will appear here.";
   renderDefinitions([]);
+  queueAutoTranslate();
 });
 
 sourceText.addEventListener("keydown", (event) => {
-  if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+  if (event.key === "Enter" && !event.shiftKey) {
     event.preventDefault();
+    clearTimeout(autoTranslateTimer);
     translateText();
   }
 });
