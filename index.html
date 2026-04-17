@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#107c63" />
     <meta
       name="description"
-      content="A local multilingual translation app with pronunciation, spelling correction, copy, speech, and history."
+      content="A local multilingual translation app with pronunciation, spelling correction, definitions, simplification, and English-to-English help."
     />
     <title>Multilingual Translator</title>
     <link rel="manifest" href="./manifest.webmanifest" />
@@ -17,12 +17,16 @@
     <main class="app-shell">
       <section class="workspace" aria-labelledby="appTitle">
         <div class="intro">
-          <p class="eyebrow">English ⇄ Chinese and more</p>
-          <h1 id="appTitle">Translate, pronounce, and polish.</h1>
+          <p class="eyebrow">English ⇄ Chinese and many more languages</p>
+          <h1 id="appTitle">Translate, pronounce, define, and simplify.</h1>
           <p class="intro-copy">
-            Choose your languages, correct spelling mistakes, hear pronunciation, and save useful lines as you work.
+            Translate longer text, hear clearer pronunciation, fix spelling mistakes, compare meanings, and understand
+            words in simple English.
           </p>
-          <p class="version-note">UPDATE 10 LIVE NOW</p>
+          <div class="meta-row">
+            <p class="version-note">Update 11</p>
+            <p class="limit-note">Long text mode: up to 120,000 characters</p>
+          </div>
         </div>
 
         <form id="translateForm" class="translator" autocomplete="off">
@@ -45,12 +49,12 @@
               <span id="sourceLabel" class="pane-label">English</span>
               <textarea
                 id="sourceText"
-                rows="10"
-                maxlength="30000"
+                rows="11"
+                maxlength="120000"
                 placeholder="Write or paste English here..."
                 autofocus
               ></textarea>
-              <span id="countValue" class="counter">0 words / 30000 characters</span>
+              <span id="countValue" class="counter">0 words / 120000 characters</span>
             </label>
 
             <section class="pane output-pane" aria-labelledby="resultLabel">
@@ -60,7 +64,7 @@
               </div>
               <div id="resultText" class="result-text" tabindex="0">Translation will appear here.</div>
               <div class="definitions-box" aria-labelledby="definitionsTitle">
-                <h2 id="definitionsTitle">Other translations</h2>
+                <h2 id="definitionsTitle">Multiple definitions</h2>
                 <ol id="definitionList" class="definition-list" aria-live="polite"></ol>
               </div>
             </section>
@@ -78,29 +82,32 @@
         </form>
       </section>
 
-      <aside class="side-panel" aria-label="Translation notes and history">
+      <aside class="side-panel" aria-label="Translation tools and history">
         <img
           class="language-image"
           src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=900&q=80"
           alt="A glowing world map seen from space"
         />
-        <section class="details-block" aria-labelledby="detailsTitle">
-          <h2 id="detailsTitle">Language details</h2>
-          <dl class="details-list">
-            <div>
-              <dt>Detected input</dt>
-              <dd id="detectedLanguageValue">No text yet</dd>
+        <section class="pronunciation-block" aria-labelledby="pronunciationTitle">
+          <h2 id="pronunciationTitle">Pronunciation</h2>
+          <div class="panel-grid">
+            <div class="mini-panel">
+              <span class="mini-label">Input guide</span>
+              <div id="sourcePronunciation" class="mini-text" tabindex="0">Pronunciation guide will appear here.</div>
             </div>
-            <div>
-              <dt>Text size</dt>
-              <dd id="textSizeValue">0 words, 0 characters</dd>
+            <div class="mini-panel">
+              <span class="mini-label">Result guide</span>
+              <div id="resultPronunciation" class="mini-text" tabindex="0">Translated pronunciation will appear here.</div>
             </div>
-            <div>
-              <dt>Reading time</dt>
-              <dd id="readingTimeValue">0 min</dd>
-            </div>
-          </dl>
+          </div>
         </section>
+
+        <section class="spelling-block" aria-labelledby="spellingTitle">
+          <h2 id="spellingTitle">Spelling helper</h2>
+          <p>Check mistakes, see likely fixes, and keep the corrected version ready for translation.</p>
+          <div id="spellingStatus" class="mini-text" tabindex="0">No spelling suggestions yet.</div>
+        </section>
+
         <section class="simplify-block" aria-labelledby="simplifyTitle">
           <h2 id="simplifyTitle">Simple words</h2>
           <p>Make English text easier to read before translating or speaking it.</p>
@@ -110,16 +117,29 @@
           </div>
           <div id="simplifiedText" class="simplified-text" tabindex="0">Simplified text will appear here.</div>
         </section>
+
         <section class="english-block" aria-labelledby="englishTitle">
           <h2 id="englishTitle">English to English</h2>
           <p>Explain the text in plain English, even when you only typed one unfinished word.</p>
           <button id="explainEnglishButton" class="secondary-button" type="button">Explain in English</button>
           <div id="englishText" class="simplified-text" tabindex="0">English explanation will appear here.</div>
         </section>
+
+        <section class="examples-block" aria-labelledby="examplesTitle">
+          <h2 id="examplesTitle">Example uses</h2>
+          <div id="exampleList" class="stack-list" aria-live="polite"></div>
+        </section>
+
+        <section class="insights-block" aria-labelledby="insightsTitle">
+          <h2 id="insightsTitle">Word insights</h2>
+          <div id="insightList" class="stack-list" aria-live="polite"></div>
+        </section>
+
         <section class="phrase-block" aria-labelledby="phraseTitle">
           <h2 id="phraseTitle">Common phrases</h2>
           <div id="phraseList" class="phrase-list" aria-live="polite"></div>
         </section>
+
         <section class="saved-block" aria-labelledby="savedTitle">
           <div class="history-heading">
             <h2 id="savedTitle">Saved</h2>
@@ -127,6 +147,7 @@
           </div>
           <ol id="savedList" class="history-list" aria-live="polite"></ol>
         </section>
+
         <section class="history-block">
           <div class="history-heading">
             <h2>Recent</h2>

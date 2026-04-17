@@ -18,9 +18,6 @@ const historyList = document.getElementById("historyList");
 const savedList = document.getElementById("savedList");
 const statusValue = document.getElementById("statusValue");
 const countValue = document.getElementById("countValue");
-const detectedLanguageValue = document.getElementById("detectedLanguageValue");
-const textSizeValue = document.getElementById("textSizeValue");
-const readingTimeValue = document.getElementById("readingTimeValue");
 const sourceLabel = document.getElementById("sourceLabel");
 const resultLabel = document.getElementById("resultLabel");
 const sourceLanguage = document.getElementById("sourceLanguage");
@@ -30,26 +27,42 @@ const definitionList = document.getElementById("definitionList");
 const simplifiedText = document.getElementById("simplifiedText");
 const englishText = document.getElementById("englishText");
 const phraseList = document.getElementById("phraseList");
+const sourcePronunciation = document.getElementById("sourcePronunciation");
+const resultPronunciation = document.getElementById("resultPronunciation");
+const spellingStatus = document.getElementById("spellingStatus");
+const exampleList = document.getElementById("exampleList");
+const insightList = document.getElementById("insightList");
 
 const maxCharacters = Number(sourceText.maxLength);
-const chunkSize = 460;
+const chunkSize = 420;
 const historyKey = "multilingual-translator-history";
 const savedKey = "multilingual-translator-saved";
+const placeholderResult = "Translation will appear here.";
+const placeholderSimplified = "Simplified text will appear here.";
+const placeholderEnglish = "English explanation will appear here.";
+const placeholderPronunciation = "Pronunciation guide will appear here.";
+const placeholderTranslatedPronunciation = "Translated pronunciation will appear here.";
 
 const languages = [
   { code: "en", speech: "en-US", correction: "en-US", name: "English", placeholder: "Write or paste English here..." },
   { code: "zh-CN", speech: "zh-CN", correction: "zh-CN", name: "Chinese Simplified", placeholder: "在这里输入或粘贴中文..." },
   { code: "zh-TW", speech: "zh-TW", correction: "zh-TW", name: "Chinese Traditional", placeholder: "在這裡輸入或貼上中文..." },
-  { code: "es", speech: "es-ES", correction: "es", name: "Spanish", placeholder: "Escribe o pega texto en español..." },
+  { code: "es", speech: "es-ES", correction: "es", name: "Spanish", placeholder: "Escribe o pega texto en espanol..." },
   { code: "fr", speech: "fr-FR", correction: "fr", name: "French", placeholder: "Ecrivez ou collez du texte en francais..." },
-  { code: "ja", speech: "ja-JP", correction: "ja-JP", name: "Japanese", placeholder: "日本語を入力または貼り付けてください..." },
-  { code: "ko", speech: "ko-KR", correction: "ko-KR", name: "Korean", placeholder: "한국어를 입력하거나 붙여넣으세요..." },
   { code: "de", speech: "de-DE", correction: "de-DE", name: "German", placeholder: "Deutsch schreiben oder einfugen..." },
   { code: "it", speech: "it-IT", correction: "it", name: "Italian", placeholder: "Scrivi o incolla testo in italiano..." },
-  { code: "pt", speech: "pt-PT", correction: "pt", name: "Portuguese", placeholder: "Escreva ou cole texto em portugues..." },
+  { code: "pt", speech: "pt-BR", correction: "pt", name: "Portuguese", placeholder: "Escreva ou cole texto em portugues..." },
+  { code: "nl", speech: "nl-NL", correction: "nl", name: "Dutch", placeholder: "Schrijf of plak hier Nederlandse tekst..." },
+  { code: "pl", speech: "pl-PL", correction: "pl", name: "Polish", placeholder: "Wpisz lub wklej tutaj tekst po polsku..." },
+  { code: "tr", speech: "tr-TR", correction: "tr", name: "Turkish", placeholder: "Turkce metni buraya yazin veya yapistirin..." },
   { code: "ru", speech: "ru-RU", correction: "ru-RU", name: "Russian", placeholder: "Введите или вставьте русский текст..." },
-  { code: "ar", speech: "ar-SA", correction: "ar", name: "Arabic", placeholder: "اكتب النص العربي أو الصقه هنا..." },
+  { code: "ja", speech: "ja-JP", correction: "ja-JP", name: "Japanese", placeholder: "日本語を入力または貼り付けてください..." },
+  { code: "ko", speech: "ko-KR", correction: "ko-KR", name: "Korean", placeholder: "한국어를 입력하거나 붙여넣으세요..." },
+  { code: "vi", speech: "vi-VN", correction: "vi", name: "Vietnamese", placeholder: "Nhap hoac dan van ban tieng Viet tai day..." },
+  { code: "th", speech: "th-TH", correction: "th", name: "Thai", placeholder: "พิมพ์หรือวางข้อความภาษาไทยที่นี่..." },
+  { code: "id", speech: "id-ID", correction: "id", name: "Indonesian", placeholder: "Tulis atau tempel teks bahasa Indonesia di sini..." },
   { code: "hi", speech: "hi-IN", correction: "hi-IN", name: "Hindi", placeholder: "हिंदी टेक्स्ट लिखें या पेस्ट करें..." },
+  { code: "ar", speech: "ar-SA", correction: "ar", name: "Arabic", placeholder: "اكتب النص العربي أو الصقه هنا..." },
 ];
 
 const phraseBook = new Map([
@@ -66,6 +79,10 @@ const phraseBook = new Map([
   ["en|ja|hello", "こんにちは"],
   ["en|ko|hello", "안녕하세요"],
   ["en|de|hello", "hallo"],
+  ["en|it|hello", "ciao"],
+  ["en|pt|hello", "ola"],
+  ["en|tr|hello", "merhaba"],
+  ["en|vi|hello", "xin chao"],
 ]);
 
 const typoFallbacks = new Map([
@@ -81,6 +98,10 @@ const typoFallbacks = new Map([
   ["wierd", "weird"],
   ["acheive", "achieve"],
   ["frend", "friend"],
+  ["pronounciation", "pronunciation"],
+  ["transalte", "translate"],
+  ["simplfy", "simplify"],
+  ["enviroment", "environment"],
 ]);
 
 const simplerWords = new Map([
@@ -113,99 +134,6 @@ const simplerWords = new Map([
   ["utilize", "use"],
 ]);
 
-const commonPhrases = [
-  {
-    intent: "Greeting",
-    phrases: {
-      en: "Hello, nice to meet you.",
-      "zh-CN": "你好，很高兴认识你。",
-      "zh-TW": "你好，很高興認識你。",
-      es: "Hola, mucho gusto.",
-      fr: "Bonjour, ravi de vous rencontrer.",
-      ja: "こんにちは、はじめまして。",
-      ko: "안녕하세요, 만나서 반갑습니다.",
-      de: "Hallo, freut mich, Sie kennenzulernen.",
-      it: "Ciao, piacere di conoscerti.",
-      pt: "Ola, prazer em conhecer voce.",
-      ru: "Здравствуйте, приятно познакомиться.",
-      ar: "مرحبا، سعيد بلقائك.",
-      hi: "नमस्ते, आपसे मिलकर खुशी हुई।",
-    },
-  },
-  {
-    intent: "Help",
-    phrases: {
-      en: "Can you help me?",
-      "zh-CN": "你能帮我吗？",
-      "zh-TW": "你能幫我嗎？",
-      es: "Puedes ayudarme?",
-      fr: "Pouvez-vous m'aider?",
-      ja: "手伝ってくれますか。",
-      ko: "도와주실 수 있나요?",
-      de: "Koennen Sie mir helfen?",
-      it: "Puoi aiutarmi?",
-      pt: "Voce pode me ajudar?",
-      ru: "Вы можете мне помочь?",
-      ar: "هل يمكنك مساعدتي؟",
-      hi: "क्या आप मेरी मदद कर सकते हैं?",
-    },
-  },
-  {
-    intent: "Price",
-    phrases: {
-      en: "How much does this cost?",
-      "zh-CN": "这个多少钱？",
-      "zh-TW": "這個多少錢？",
-      es: "Cuanto cuesta esto?",
-      fr: "Combien ca coute?",
-      ja: "これはいくらですか。",
-      ko: "이거 얼마인가요?",
-      de: "Wie viel kostet das?",
-      it: "Quanto costa questo?",
-      pt: "Quanto custa isto?",
-      ru: "Сколько это стоит?",
-      ar: "كم سعر هذا؟",
-      hi: "इसकी कीमत कितनी है?",
-    },
-  },
-  {
-    intent: "Directions",
-    phrases: {
-      en: "Where is the nearest station?",
-      "zh-CN": "最近的车站在哪里？",
-      "zh-TW": "最近的車站在哪裡？",
-      es: "Donde esta la estacion mas cercana?",
-      fr: "Ou est la gare la plus proche?",
-      ja: "最寄りの駅はどこですか。",
-      ko: "가장 가까운 역이 어디인가요?",
-      de: "Wo ist der naechste Bahnhof?",
-      it: "Dove si trova la stazione piu vicina?",
-      pt: "Onde fica a estacao mais proxima?",
-      ru: "Где ближайшая станция?",
-      ar: "أين أقرب محطة؟",
-      hi: "सबसे नजदीकी स्टेशन कहाँ है?",
-    },
-  },
-  {
-    intent: "Food",
-    phrases: {
-      en: "I would like to order this.",
-      "zh-CN": "我想点这个。",
-      "zh-TW": "我想點這個。",
-      es: "Me gustaria pedir esto.",
-      fr: "Je voudrais commander ceci.",
-      ja: "これを注文したいです。",
-      ko: "이것을 주문하고 싶어요.",
-      de: "Ich moechte das bestellen.",
-      it: "Vorrei ordinare questo.",
-      pt: "Eu gostaria de pedir isto.",
-      ru: "Я хотел бы заказать это.",
-      ar: "أود طلب هذا.",
-      hi: "मैं यह ऑर्डर करना चाहता हूँ।",
-    },
-  },
-];
-
 const englishMeanings = new Map([
   ["hello", "a friendly greeting you say when you meet someone"],
   ["translate", "to change words from one language into another language"],
@@ -230,17 +158,130 @@ const englishMeanings = new Map([
   ["weird", "strange or unusual"],
   ["achieve", "to successfully reach a goal"],
   ["opposite", "completely different or facing the other way"],
+  ["definition", "the meaning of a word or phrase"],
+  ["update", "a newer version with changes"],
+  ["mistake", "something that is wrong or not correct"],
 ]);
+
+const pronunciationDictionary = new Map([
+  ["english", "/ING-glish/"],
+  ["chinese", "/chy-NEEZ/"],
+  ["translate", "/trans-LAYT/"],
+  ["translation", "/trans-LAY-shuhn/"],
+  ["pronunciation", "/proh-nun-see-AY-shuhn/"],
+  ["language", "/LANG-gwij/"],
+  ["simplify", "/SIM-pluh-fy/"],
+  ["definition", "/def-uh-NISH-uhn/"],
+  ["dictionary", "/DIK-shuh-ner-ee/"],
+  ["example", "/ig-ZAM-puhl/"],
+  ["spelling", "/SPEL-ing/"],
+  ["receive", "/ri-SEEV/"],
+  ["address", "/uh-DRES/"],
+  ["separate", "/SEP-uh-rayt/"],
+  ["because", "/bi-KAWZ/"],
+  ["friend", "/FREND/"],
+  ["update", "/UHP-dayt/"],
+  ["application", "/ap-li-KAY-shuhn/"],
+]);
+
+const commonPhrases = [
+  {
+    intent: "Greeting",
+    phrases: {
+      en: "Hello, nice to meet you.",
+      "zh-CN": "你好，很高兴认识你。",
+      "zh-TW": "你好，很高興認識你。",
+      es: "Hola, mucho gusto.",
+      fr: "Bonjour, ravi de vous rencontrer.",
+      de: "Hallo, freut mich, Sie kennenzulernen.",
+      it: "Ciao, piacere di conoscerti.",
+      pt: "Ola, prazer em conhecer voce.",
+      nl: "Hallo, leuk je te ontmoeten.",
+      pl: "Czesc, milo cie poznac.",
+      tr: "Merhaba, tanistigima memnun oldum.",
+      ru: "Здравствуйте, приятно познакомиться.",
+      ja: "こんにちは、はじめまして。",
+      ko: "안녕하세요, 만나서 반갑습니다.",
+      vi: "Xin chao, rat vui duoc gap ban.",
+      th: "สวัสดี ยินดีที่ได้รู้จัก",
+      id: "Halo, senang bertemu denganmu.",
+      hi: "नमस्ते, आपसे मिलकर खुशी हुई।",
+      ar: "مرحبا، سعيد بلقائك.",
+    },
+  },
+  {
+    intent: "Help",
+    phrases: {
+      en: "Can you help me?",
+      "zh-CN": "你能帮我吗？",
+      "zh-TW": "你能幫我嗎？",
+      es: "Puedes ayudarme?",
+      fr: "Pouvez-vous m'aider?",
+      de: "Koennen Sie mir helfen?",
+      it: "Puoi aiutarmi?",
+      pt: "Voce pode me ajudar?",
+      nl: "Kunt u mij helpen?",
+      pl: "Czy mozesz mi pomoc?",
+      tr: "Bana yardim edebilir misiniz?",
+      ru: "Вы можете мне помочь?",
+      ja: "手伝ってくれますか。",
+      ko: "도와주실 수 있나요?",
+      vi: "Ban co the giup toi khong?",
+      th: "คุณช่วยฉันได้ไหม",
+      id: "Bisakah Anda membantu saya?",
+      hi: "क्या आप मेरी मदद कर सकते हैं?",
+      ar: "هل يمكنك مساعدتي؟",
+    },
+  },
+  {
+    intent: "Travel",
+    phrases: {
+      en: "Where is the nearest station?",
+      "zh-CN": "最近的车站在哪里？",
+      "zh-TW": "最近的車站在哪裡？",
+      es: "Donde esta la estacion mas cercana?",
+      fr: "Ou est la gare la plus proche?",
+      de: "Wo ist der naechste Bahnhof?",
+      it: "Dove si trova la stazione piu vicina?",
+      pt: "Onde fica a estacao mais proxima?",
+      nl: "Waar is het dichtstbijzijnde station?",
+      pl: "Gdzie jest najblizsza stacja?",
+      tr: "En yakin istasyon nerede?",
+      ru: "Где ближайшая станция?",
+      ja: "最寄りの駅はどこですか。",
+      ko: "가장 가까운 역이 어디인가요?",
+      vi: "Ga gan nhat o dau?",
+      th: "สถานีที่ใกล้ที่สุดอยู่ที่ไหน",
+      id: "Di mana stasiun terdekat?",
+      hi: "सबसे नजदीकी स्टेशन कहाँ है?",
+      ar: "أين أقرب محطة؟",
+    },
+  },
+];
+
+const exampleTemplates = {
+  en: [
+    (text) => `Formal: Please translate "${text}" into clear English.`,
+    (text) => `Casual: I want to say "${text}" naturally in conversation.`,
+    (text) => `Learning: What does "${text}" mean in easy English?`,
+  ],
+  "zh-CN": [
+    (text) => `商务: 请把“${text}”翻译得更正式。`,
+    (text) => `日常: “${text}”在聊天里怎么说更自然？`,
+    (text) => `学习: “${text}”用简单的话是什么意思？`,
+  ],
+};
 
 const englishWordBank = [
   ...new Set([
     ...englishMeanings.keys(),
+    ...typoFallbacks.keys(),
     ...typoFallbacks.values(),
     ...simplerWords.keys(),
     ...simplerWords.values(),
+    ...pronunciationDictionary.keys(),
     "cost",
     "nearest",
-    "english",
     "definition",
     "similar",
     "spelling",
@@ -271,9 +312,10 @@ function getLanguage(code) {
 }
 
 function getLanguagePair() {
-  const source = getLanguage(sourceLanguage.value);
-  const target = getLanguage(targetLanguage.value);
-  return { source, target };
+  return {
+    source: getLanguage(sourceLanguage.value),
+    target: getLanguage(targetLanguage.value),
+  };
 }
 
 function normalizeText(value) {
@@ -284,14 +326,100 @@ function setStatus(message) {
   statusValue.textContent = message;
 }
 
-function updateLabels() {
-  const { source, target } = getLanguagePair();
-  sourceLabel.textContent = source.name;
-  resultLabel.textContent = target.name;
-  sourceText.placeholder = source.placeholder;
-  renderDefinitions([], "Other translations");
-  renderPhrases();
-  updateDetails();
+function preserveCapitalization(original, replacement) {
+  if (original.toUpperCase() === original) {
+    return replacement.toUpperCase();
+  }
+
+  if (/^[A-Z]/.test(original)) {
+    return `${replacement.charAt(0).toUpperCase()}${replacement.slice(1)}`;
+  }
+
+  return replacement;
+}
+
+function countWords(value) {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return 0;
+  }
+
+  const latinWords = trimmed.match(/[A-Za-z0-9]+(?:[-'][A-Za-z0-9]+)*/g) ?? [];
+  const cjkCharacters = trimmed.match(/[\u3400-\u9fff\uf900-\ufaff]/g) ?? [];
+  const otherWords = trimmed
+    .replace(/[A-Za-z0-9]+(?:[-'][A-Za-z0-9]+)*/g, " ")
+    .replace(/[\u3400-\u9fff\uf900-\ufaff]/g, " ")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+
+  return latinWords.length + cjkCharacters.length + otherWords.length;
+}
+
+function splitForTranslation(text) {
+  const parts = [];
+  const blocks = text.match(/[^\n]+|\n+/g) ?? [];
+
+  blocks.forEach((block) => {
+    if (block.length <= chunkSize) {
+      parts.push(block);
+      return;
+    }
+
+    const sentences = block.match(/[^.!?。！？\n]+[.!?。！？]?\s*/g) ?? [block];
+    let current = "";
+
+    sentences.forEach((sentence) => {
+      if ((current + sentence).length <= chunkSize) {
+        current += sentence;
+        return;
+      }
+
+      if (current) {
+        parts.push(current);
+        current = "";
+      }
+
+      for (let index = 0; index < sentence.length; index += chunkSize) {
+        const slice = sentence.slice(index, index + chunkSize);
+        if (slice.length === chunkSize) {
+          parts.push(slice);
+        } else {
+          current = slice;
+        }
+      }
+    });
+
+    if (current) {
+      parts.push(current);
+    }
+  });
+
+  return parts;
+}
+
+function detectLanguage(text) {
+  const value = text.trim();
+
+  if (!value) {
+    return "No text yet";
+  }
+
+  const signals = [
+    { pattern: /[\u4e00-\u9fff]/, name: "Chinese" },
+    { pattern: /[\u3040-\u30ff]/, name: "Japanese" },
+    { pattern: /[\uac00-\ud7af]/, name: "Korean" },
+    { pattern: /[\u0e00-\u0e7f]/, name: "Thai" },
+    { pattern: /[\u0400-\u04ff]/, name: "Russian" },
+    { pattern: /[\u0600-\u06ff]/, name: "Arabic" },
+    { pattern: /[\u0900-\u097f]/, name: "Hindi" },
+    { pattern: /\b(el|la|los|las|gracias|hola|por favor)\b/i, name: "Spanish" },
+    { pattern: /\b(le|la|les|bonjour|merci|avec|pour)\b/i, name: "French" },
+    { pattern: /\b(der|die|das|und|bitte|danke)\b/i, name: "German" },
+    { pattern: /\b(the|and|please|hello|thank|where)\b/i, name: "English" },
+  ];
+
+  return signals.find((signal) => signal.pattern.test(value))?.name ?? "Unknown";
 }
 
 function getEnglishSourceText() {
@@ -299,11 +427,32 @@ function getEnglishSourceText() {
     return sourceText.value.trim();
   }
 
-  if (targetLanguage.value === "en" && resultText.textContent.trim() && resultText.textContent.trim() !== "Translation will appear here.") {
-    return resultText.textContent.trim();
+  if (targetLanguage.value === "en") {
+    const translated = resultText.textContent.trim();
+    if (translated && translated !== placeholderResult) {
+      return translated;
+    }
   }
 
   return sourceText.value.trim();
+}
+
+function simplifyEnglishText(text) {
+  const replaced = text.replace(/\b[A-Za-z]+(?:'[A-Za-z]+)?\b/g, (word) => {
+    const simple = simplerWords.get(word.toLowerCase());
+    return simple ? preserveCapitalization(word, simple) : word;
+  });
+
+  return replaced
+    .replace(/\b(in order to)\b/gi, "to")
+    .replace(/\b(due to the fact that)\b/gi, "because")
+    .replace(/\b(at this point in time)\b/gi, "now")
+    .replace(/\b(a large number of)\b/gi, "many")
+    .replace(/\b(prior to)\b/gi, "before")
+    .replace(/\b(subsequent to)\b/gi, "after")
+    .replace(/\s+/g, " ")
+    .replace(/\s+([,.!?;:])/g, "$1")
+    .trim();
 }
 
 function explainEnglishValue(text) {
@@ -340,8 +489,8 @@ function explainEnglishValue(text) {
   return `Plain English meaning: ${cleaned}.`;
 }
 
-function updateEnglishExplanation() {
-  englishText.textContent = explainEnglishValue(getEnglishSourceText());
+function getWordMeaning(word) {
+  return englishMeanings.get(word.toLowerCase()) ?? "an English word with a similar spelling";
 }
 
 function levenshteinDistance(a, b) {
@@ -371,10 +520,6 @@ function levenshteinDistance(a, b) {
   return matrix[a.length][b.length];
 }
 
-function getWordMeaning(word) {
-  return englishMeanings.get(word.toLowerCase()) ?? "an English word with a similar spelling";
-}
-
 function getSpellingSuggestions(text) {
   if (sourceLanguage.value !== "en") {
     return [];
@@ -385,11 +530,7 @@ function getSpellingSuggestions(text) {
   const suggestions = [];
 
   uniqueWords.forEach((word) => {
-    const exactKnown =
-      englishWordBank.includes(word) ||
-      commonPhrases.some((item) => Object.values(item.phrases).some((phrase) => phrase.toLowerCase().includes(word)));
-
-    if (exactKnown) {
+    if (englishWordBank.includes(word)) {
       return;
     }
 
@@ -412,26 +553,153 @@ function getSpellingSuggestions(text) {
     });
   });
 
-  return suggestions.slice(0, 6);
+  return suggestions.slice(0, 8);
 }
 
-function countWords(value) {
-  const trimmed = value.trim();
-
-  if (!trimmed) {
-    return 0;
+function buildPronunciationGuide(text, languageCode) {
+  const cleaned = normalizeText(text);
+  if (!cleaned) {
+    return languageCode === getLanguagePair().target.code ? placeholderTranslatedPronunciation : placeholderPronunciation;
   }
 
-  const latinWords = trimmed.match(/[A-Za-z0-9]+(?:[-'][A-Za-z0-9]+)*/g) ?? [];
-  const cjkCharacters = trimmed.match(/[\u3400-\u9fff\uf900-\ufaff]/g) ?? [];
-  const otherWords = trimmed
-    .replace(/[A-Za-z0-9]+(?:[-'][A-Za-z0-9]+)*/g, " ")
-    .replace(/[\u3400-\u9fff\uf900-\ufaff]/g, " ")
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean);
+  if (languageCode.startsWith("en")) {
+    const words = cleaned.match(/[A-Za-z]+(?:'[A-Za-z]+)?/g) ?? [];
+    if (!words.length) {
+      return "Use Speak input for full pronunciation audio.";
+    }
 
-  return latinWords.length + cjkCharacters.length + otherWords.length;
+    return words
+      .slice(0, 8)
+      .map((word) => {
+        const lower = word.toLowerCase();
+        const dictionary = pronunciationDictionary.get(lower);
+        if (dictionary) {
+          return `${word} ${dictionary}`;
+        }
+
+        const rough = lower
+          .replace(/tion/g, "shun")
+          .replace(/ough/g, "oh")
+          .replace(/ph/g, "f")
+          .replace(/ing\b/g, "ing")
+          .replace(/tion\b/g, "shun");
+
+        return `${word} /${rough}/`;
+      })
+      .join("  ");
+  }
+
+  if (languageCode.startsWith("zh")) {
+    return "Chinese pronunciation is best heard with Speak input or Speak result.";
+  }
+
+  if (languageCode.startsWith("ja")) {
+    return "Japanese pronunciation is available through audio playback.";
+  }
+
+  return "Use Speak input or Speak result for natural pronunciation audio.";
+}
+
+function updatePronunciationPanels() {
+  sourcePronunciation.textContent = buildPronunciationGuide(sourceText.value, sourceLanguage.value);
+  const result = resultText.textContent.trim();
+  resultPronunciation.textContent =
+    !result || result === placeholderResult
+      ? placeholderTranslatedPronunciation
+      : buildPronunciationGuide(result, targetLanguage.value);
+}
+
+function updateEnglishExplanation() {
+  englishText.textContent = explainEnglishValue(getEnglishSourceText());
+}
+
+function renderStackList(container, items, emptyText) {
+  container.innerHTML = "";
+
+  if (!items.length) {
+    const empty = document.createElement("div");
+    empty.className = "stack-item empty-stack";
+    empty.textContent = emptyText;
+    container.append(empty);
+    return;
+  }
+
+  items.forEach((item) => {
+    const row = document.createElement("div");
+    row.className = "stack-item";
+
+    const title = document.createElement("strong");
+    title.textContent = item.title;
+
+    const body = document.createElement("span");
+    body.textContent = item.body;
+
+    row.append(title, body);
+    container.append(row);
+  });
+}
+
+function updateExamples() {
+  const text = normalizeText(sourceText.value).slice(0, 80);
+  const templates = exampleTemplates[sourceLanguage.value] ?? exampleTemplates.en;
+
+  if (!text) {
+    renderStackList(exampleList, [], "Type something to see translation examples.");
+    return;
+  }
+
+  renderStackList(
+    exampleList,
+    templates.map((template, index) => ({
+      title: `Example ${index + 1}`,
+      body: template(text),
+    })),
+    "",
+  );
+}
+
+function updateInsights() {
+  const input = normalizeText(sourceText.value);
+  if (!input) {
+    renderStackList(insightList, [], "Word insights will appear here.");
+    return;
+  }
+
+  const items = [];
+  const simplified = sourceLanguage.value === "en" ? simplifyEnglishText(input) : "";
+  if (sourceLanguage.value === "en") {
+    items.push({
+      title: "Plain version",
+      body: simplified === input ? "Your text is already fairly simple." : simplified,
+    });
+  }
+
+  const words = input.match(/[A-Za-z]+(?:'[A-Za-z]+)?/g) ?? [];
+  const firstWord = words[0]?.toLowerCase();
+  if (firstWord && englishMeanings.has(firstWord)) {
+    items.push({
+      title: "Meaning",
+      body: `${firstWord}: ${englishMeanings.get(firstWord)}`,
+    });
+  }
+
+  items.push({
+    title: "Tone",
+    body: countWords(input) > 20 ? "Longer text, good for paragraph translation." : "Short text, good for quick lookup.",
+  });
+
+  items.push({
+    title: "Direction",
+    body: `${getLanguage(sourceLanguage.value).name} to ${getLanguage(targetLanguage.value).name}`,
+  });
+
+  renderStackList(insightList, items, "Word insights will appear here.");
+}
+
+function updateDetails() {
+  updatePronunciationPanels();
+  updateExamples();
+  updateInsights();
 }
 
 function updateCount() {
@@ -440,35 +708,220 @@ function updateCount() {
   updateEnglishExplanation();
 }
 
-function detectLanguage(text) {
-  const value = text.trim();
+function renderDefinitions(items, title = "Multiple definitions") {
+  definitionsTitle.textContent = title;
+  definitionList.innerHTML = "";
 
-  if (!value) {
-    return "No text yet";
+  if (!items.length) {
+    const item = document.createElement("li");
+    item.className = "empty-definition";
+    item.textContent =
+      title === "Similar words"
+        ? "When a word looks misspelled, similar English words will appear here."
+        : "Translate a word or sentence to compare multiple meanings.";
+    definitionList.append(item);
+    return;
   }
 
-  const signals = [
-    { pattern: /[\u4e00-\u9fff]/, name: "Chinese" },
-    { pattern: /[\u3040-\u30ff]/, name: "Japanese" },
-    { pattern: /[\uac00-\ud7af]/, name: "Korean" },
-    { pattern: /[\u0400-\u04ff]/, name: "Russian" },
-    { pattern: /[\u0600-\u06ff]/, name: "Arabic" },
-    { pattern: /[\u0900-\u097f]/, name: "Hindi" },
-    { pattern: /\b(el|la|los|las|gracias|hola|por favor)\b/i, name: "Spanish" },
-    { pattern: /\b(le|la|les|bonjour|merci|avec|pour)\b/i, name: "French" },
-    { pattern: /\b(der|die|das|und|bitte|danke)\b/i, name: "German" },
-    { pattern: /\b(the|and|please|hello|thank|where)\b/i, name: "English" },
-  ];
-  return signals.find((signal) => signal.pattern.test(value))?.name ?? "Unknown";
+  items.forEach((definition) => {
+    const item = document.createElement("li");
+    item.className = "definition-item";
+
+    const text = document.createElement("button");
+    text.type = "button";
+    text.textContent = definition.text;
+    text.addEventListener("click", () => {
+      resultText.textContent = definition.text;
+      updatePronunciationPanels();
+      setStatus("Alternative selected");
+    });
+
+    const score = document.createElement("span");
+    score.textContent =
+      definition.note ||
+      definition.description ||
+      (definition.quality ? `${Math.round(definition.quality * 100)}% match` : "possible meaning");
+
+    item.append(text, score);
+    definitionList.append(item);
+  });
 }
 
-function updateDetails() {
-  const words = countWords(sourceText.value);
-  const characters = sourceText.value.length;
-  const minutes = words === 0 ? 0 : Math.max(1, Math.ceil(words / 180));
-  detectedLanguageValue.textContent = detectLanguage(sourceText.value);
-  textSizeValue.textContent = `${words} words, ${characters} characters`;
-  readingTimeValue.textContent = `${minutes} min`;
+function loadHistory() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(historyKey) ?? "[]");
+    return Array.isArray(stored) ? stored.slice(0, 10) : [];
+  } catch {
+    return [];
+  }
+}
+
+function loadSaved() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(savedKey) ?? "[]");
+    return Array.isArray(stored) ? stored.slice(0, 12) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveHistory(source, result) {
+  const nextEntry = {
+    sourceCode: sourceLanguage.value,
+    targetCode: targetLanguage.value,
+    source,
+    result,
+    createdAt: new Date().toISOString(),
+  };
+
+  history = [
+    nextEntry,
+    ...history.filter(
+      (item) =>
+        item.source !== source ||
+        item.sourceCode !== sourceLanguage.value ||
+        item.targetCode !== targetLanguage.value,
+    ),
+  ].slice(0, 10);
+
+  localStorage.setItem(historyKey, JSON.stringify(history));
+  renderHistory();
+}
+
+function saveCurrentTranslation() {
+  const source = sourceText.value.trim();
+  const result = resultText.textContent.trim();
+
+  if (!source || !result || result === placeholderResult) {
+    setStatus("Nothing to save");
+    return;
+  }
+
+  const nextEntry = {
+    sourceCode: sourceLanguage.value,
+    targetCode: targetLanguage.value,
+    source,
+    result,
+    createdAt: new Date().toISOString(),
+  };
+
+  savedTranslations = [
+    nextEntry,
+    ...savedTranslations.filter(
+      (item) =>
+        item.source !== source ||
+        item.result !== result ||
+        item.sourceCode !== sourceLanguage.value ||
+        item.targetCode !== targetLanguage.value,
+    ),
+  ].slice(0, 12);
+
+  localStorage.setItem(savedKey, JSON.stringify(savedTranslations));
+  renderSaved();
+  setStatus("Saved");
+}
+
+function createStoredTranslationItem(item) {
+  const historyItem = document.createElement("li");
+  historyItem.className = "history-item";
+
+  const button = document.createElement("button");
+  button.type = "button";
+  button.addEventListener("click", () => {
+    sourceLanguage.value = item.sourceCode ?? "en";
+    targetLanguage.value = item.targetCode ?? "zh-CN";
+    sourceText.value = item.source;
+    resultText.textContent = item.result;
+    simplifiedText.textContent = placeholderSimplified;
+    spellingStatus.textContent = "No spelling suggestions yet.";
+    updateLabels();
+    updateCount();
+    sourceText.focus();
+    setStatus("Loaded");
+  });
+
+  const direction = document.createElement("span");
+  direction.className = "history-direction";
+  direction.textContent = `${getLanguage(item.sourceCode ?? "en").name} to ${getLanguage(item.targetCode ?? "zh-CN").name}`;
+
+  const source = document.createElement("span");
+  source.className = "history-source";
+  source.textContent = item.source;
+
+  const result = document.createElement("span");
+  result.className = "history-result";
+  result.textContent = item.result;
+
+  button.append(direction, source, result);
+  historyItem.append(button);
+  return historyItem;
+}
+
+function renderHistory() {
+  historyList.innerHTML = "";
+
+  if (!history.length) {
+    const empty = document.createElement("li");
+    empty.className = "empty-history";
+    empty.textContent = "Translated lines will stay here on this computer.";
+    historyList.append(empty);
+    return;
+  }
+
+  history.forEach((item) => {
+    historyList.append(createStoredTranslationItem(item));
+  });
+}
+
+function renderSaved() {
+  savedList.innerHTML = "";
+
+  if (!savedTranslations.length) {
+    const empty = document.createElement("li");
+    empty.className = "empty-history";
+    empty.textContent = "Save important translations here.";
+    savedList.append(empty);
+    return;
+  }
+
+  savedTranslations.forEach((item) => {
+    savedList.append(createStoredTranslationItem(item));
+  });
+}
+
+function renderPhrases() {
+  phraseList.innerHTML = "";
+  const sourceCode = sourceLanguage.value;
+  const hasCurrentLanguage = commonPhrases.some((item) => item.phrases[sourceCode]);
+
+  commonPhrases.forEach((item) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "phrase-chip";
+    button.textContent = `${item.intent}: ${item.phrases[sourceCode] ?? item.phrases.en}`;
+    button.addEventListener("click", () => {
+      if (!hasCurrentLanguage) {
+        sourceLanguage.value = "en";
+      }
+      sourceText.value = item.phrases[sourceLanguage.value] ?? item.phrases.en;
+      resultText.textContent = placeholderResult;
+      simplifiedText.textContent = placeholderSimplified;
+      updateLabels();
+      updateCount();
+      translateText();
+    });
+    phraseList.append(button);
+  });
+}
+
+function updateLabels() {
+  const { source, target } = getLanguagePair();
+  sourceLabel.textContent = source.name;
+  resultLabel.textContent = target.name;
+  sourceText.placeholder = source.placeholder;
+  renderDefinitions([], "Multiple definitions");
+  renderPhrases();
+  updateDetails();
 }
 
 function getOfflineTranslation(text) {
@@ -477,54 +930,13 @@ function getOfflineTranslation(text) {
   return phraseBook.get(`${source.code}|${target.code}|${normalized}`) ?? "";
 }
 
-function splitForTranslation(text) {
-  const parts = [];
-  const blocks = text.match(/[^\n]+|\n+/g) ?? [];
-
-  blocks.forEach((block) => {
-    if (block.length <= chunkSize) {
-      parts.push(block);
-      return;
-    }
-
-    const sentences = block.match(/[^.!?。！？]+[.!?。！？]?\s*/g) ?? [block];
-    let current = "";
-
-    sentences.forEach((sentence) => {
-      if ((current + sentence).length <= chunkSize) {
-        current += sentence;
-        return;
-      }
-
-      if (current) {
-        parts.push(current);
-        current = "";
-      }
-
-      for (let index = 0; index < sentence.length; index += chunkSize) {
-        const slice = sentence.slice(index, index + chunkSize);
-        if (slice.length === chunkSize) {
-          parts.push(slice);
-        } else {
-          current = slice;
-        }
-      }
-    });
-
-    if (current) {
-      parts.push(current);
-    }
-  });
-
-  return parts;
-}
-
 async function translateChunk(text) {
   const { source, target } = getLanguagePair();
   const params = new URLSearchParams({
     q: text,
     langpair: `${source.code}|${target.code}`,
   });
+
   const response = await fetch(`https://api.mymemory.translated.net/get?${params.toString()}`, {
     signal: activeRequest.signal,
   });
@@ -571,87 +983,13 @@ async function translateOnline(text) {
   };
 }
 
-async function translateText() {
-  const text = sourceText.value.trim();
-  const requestId = ++latestRequestId;
-
-  if (!text) {
-    resultText.textContent = "Type something first.";
-    setStatus("Waiting");
-    return;
-  }
-
-  if (sourceLanguage.value === targetLanguage.value) {
-    resultText.textContent = text;
-    setStatus("Same language");
-    return;
-  }
-
-  if (activeRequest) {
-    activeRequest.abort();
-  }
-
-  activeRequest = new AbortController();
-  translateButton.disabled = true;
-  correctButton.disabled = true;
-  simplifyButton.disabled = true;
-  setStatus("Translating");
-  renderDefinitions([], "Other translations");
-
-  try {
-    const translated = await translateOnline(text);
-    if (requestId !== latestRequestId) {
-      return;
-    }
-    resultText.textContent = translated.text;
-    renderDefinitions(getAlternativeTranslations(translated.matches, translated.text));
-    setStatus("Online result");
-    saveHistory(text, translated.text);
-  } catch (error) {
-    if (error.name === "AbortError") {
-      return;
-    }
-
-    const fallback = getOfflineTranslation(text);
-    if (requestId !== latestRequestId) {
-      return;
-    }
-    resultText.textContent =
-      fallback ||
-      "The online translator could not be reached. Try a common short phrase, or check the internet connection.";
-    setStatus(fallback ? "Local phrase book" : "Offline");
-
-    if (fallback) {
-      saveHistory(text, fallback);
-    }
-  } finally {
-    translateButton.disabled = false;
-    correctButton.disabled = false;
-    simplifyButton.disabled = false;
-    activeRequest = null;
-  }
-}
-
-function queueAutoTranslate() {
-  clearTimeout(autoTranslateTimer);
-
-  const text = sourceText.value.trim();
-  if (!text) {
-    return;
-  }
-
-  autoTranslateTimer = setTimeout(() => {
-    translateText();
-  }, 450);
-}
-
-function getAlternativeTranslations(matches, mainTranslation) {
+function getAlternativeTranslations(matches, mainTranslation, sourceTextValue) {
   const seen = new Set([normalizeText(mainTranslation).toLowerCase()]);
-
-  return matches
+  const alternatives = matches
     .map((match) => ({
       text: normalizeText(match.translation ?? ""),
       quality: Math.min(Number(match.match ?? 0), 1),
+      note: Number(match.match ?? 0) > 0 ? `${Math.round(Math.min(Number(match.match), 1) * 100)}% memory match` : "",
     }))
     .filter((item) => {
       const key = item.text.toLowerCase();
@@ -662,45 +1000,33 @@ function getAlternativeTranslations(matches, mainTranslation) {
       return true;
     })
     .sort((a, b) => b.quality - a.quality)
-    .slice(0, 5);
+    .slice(0, 6);
+
+  if (sourceLanguage.value === "en") {
+    const words = normalizeText(sourceTextValue).toLowerCase().split(" ");
+    words.forEach((word) => {
+      const simple = simplerWords.get(word);
+      if (simple && !seen.has(simple.toLowerCase())) {
+        alternatives.push({
+          text: simple,
+          quality: 0,
+          description: "simple English option",
+        });
+        seen.add(simple.toLowerCase());
+      }
+    });
+  }
+
+  return alternatives.slice(0, 8);
 }
 
-function renderDefinitions(items, title = "Other translations") {
-  definitionsTitle.textContent = title;
-  definitionList.innerHTML = "";
-
-  if (items.length === 0) {
-    const item = document.createElement("li");
-    item.className = "empty-definition";
-    item.textContent =
-      title === "Similar words"
-        ? "When a word looks misspelled, similar English words will appear here."
-        : "Translate a word or sentence to see other possible meanings.";
-    definitionList.append(item);
+function updateSpellingStatus(items, correctedText = "") {
+  if (!items.length) {
+    spellingStatus.textContent = correctedText ? `Corrected text ready: ${correctedText}` : "No spelling suggestions yet.";
     return;
   }
 
-  items.forEach((definition) => {
-    const item = document.createElement("li");
-    item.className = "definition-item";
-
-    const text = document.createElement("button");
-    text.type = "button";
-    text.textContent = definition.text;
-    text.addEventListener("click", () => {
-      resultText.textContent = definition.text;
-      setStatus("Alternative selected");
-    });
-
-    const score = document.createElement("span");
-    score.textContent =
-      definition.note ||
-      definition.description ||
-      (definition.quality ? `${Math.round(definition.quality * 100)}% match` : "possible meaning");
-
-    item.append(text, score);
-    definitionList.append(item);
-  });
+  spellingStatus.textContent = items.map((item) => item.note || `${item.text}`).join("  |  ");
 }
 
 function applyCorrections(text, matches) {
@@ -711,9 +1037,7 @@ function applyCorrections(text, matches) {
 
   usefulMatches.forEach((match) => {
     const replacement = match.replacements[0].value;
-    corrected = `${corrected.slice(0, match.offset)}${replacement}${corrected.slice(
-      match.offset + match.length,
-    )}`;
+    corrected = `${corrected.slice(0, match.offset)}${replacement}${corrected.slice(match.offset + match.length)}`;
   });
 
   return corrected;
@@ -722,12 +1046,11 @@ function applyCorrections(text, matches) {
 function applyLocalCorrections(text) {
   return text.replace(/\b[A-Za-z']+\b/g, (word) => {
     const replacement = typoFallbacks.get(word.toLowerCase());
-
     if (!replacement) {
       return word;
     }
 
-    return /^[A-Z]/.test(word) ? `${replacement.charAt(0).toUpperCase()}${replacement.slice(1)}` : replacement;
+    return preserveCapitalization(word, replacement);
   });
 }
 
@@ -736,6 +1059,7 @@ async function correctSpelling() {
 
   if (!text) {
     setStatus("Nothing to correct");
+    updateSpellingStatus([]);
     return;
   }
 
@@ -764,222 +1088,28 @@ async function correctSpelling() {
       const localCorrection = applyLocalCorrections(text);
       sourceText.value = localCorrection;
       setStatus(localCorrection === text ? "No spelling changes" : "Corrected locally");
+      const suggestions = getSpellingSuggestions(text);
+      renderDefinitions(suggestions, suggestions.length ? "Similar words" : "Multiple definitions");
+      updateSpellingStatus(suggestions, localCorrection === text ? "" : localCorrection);
     } else {
       sourceText.value = corrected;
       setStatus("Spelling corrected");
-    }
-    const suggestions = getSpellingSuggestions(text);
-    if (suggestions.length > 0) {
-      renderDefinitions(suggestions, "Similar words");
+      const suggestions = getSpellingSuggestions(text);
+      renderDefinitions(suggestions, suggestions.length ? "Similar words" : "Multiple definitions");
+      updateSpellingStatus(suggestions, corrected);
     }
   } catch {
     const corrected = applyLocalCorrections(text);
     sourceText.value = corrected;
     setStatus(corrected === text ? "No local spelling changes" : "Corrected locally");
     const suggestions = getSpellingSuggestions(text);
-    if (suggestions.length > 0) {
-      renderDefinitions(suggestions, "Similar words");
-    }
+    renderDefinitions(suggestions, suggestions.length ? "Similar words" : "Multiple definitions");
+    updateSpellingStatus(suggestions, corrected === text ? "" : corrected);
   } finally {
     correctButton.disabled = false;
     updateCount();
     sourceText.focus();
   }
-}
-
-function loadHistory() {
-  try {
-    const stored = JSON.parse(localStorage.getItem(historyKey) ?? "[]");
-    return Array.isArray(stored) ? stored.slice(0, 10) : [];
-  } catch {
-    return [];
-  }
-}
-
-function loadSaved() {
-  try {
-    const stored = JSON.parse(localStorage.getItem(savedKey) ?? "[]");
-    return Array.isArray(stored) ? stored.slice(0, 12) : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveHistory(source, result) {
-  const nextEntry = {
-    sourceCode: sourceLanguage.value,
-    targetCode: targetLanguage.value,
-    source,
-    result,
-    createdAt: new Date().toISOString(),
-  };
-
-  history = [
-    nextEntry,
-    ...history.filter(
-      (item) =>
-        item.source !== source ||
-        item.sourceCode !== sourceLanguage.value ||
-        item.targetCode !== targetLanguage.value,
-    ),
-  ].slice(0, 10);
-  localStorage.setItem(historyKey, JSON.stringify(history));
-  renderHistory();
-}
-
-function saveCurrentTranslation() {
-  const source = sourceText.value.trim();
-  const result = resultText.textContent.trim();
-
-  if (!source || !result || result === "Translation will appear here.") {
-    setStatus("Nothing to save");
-    return;
-  }
-
-  const nextEntry = {
-    sourceCode: sourceLanguage.value,
-    targetCode: targetLanguage.value,
-    source,
-    result,
-    createdAt: new Date().toISOString(),
-  };
-  savedTranslations = [
-    nextEntry,
-    ...savedTranslations.filter(
-      (item) =>
-        item.source !== source ||
-        item.result !== result ||
-        item.sourceCode !== sourceLanguage.value ||
-        item.targetCode !== targetLanguage.value,
-    ),
-  ].slice(0, 12);
-  localStorage.setItem(savedKey, JSON.stringify(savedTranslations));
-  renderSaved();
-  setStatus("Saved");
-}
-
-function createStoredTranslationItem(item) {
-  const historyItem = document.createElement("li");
-  historyItem.className = "history-item";
-
-  const button = document.createElement("button");
-  button.type = "button";
-  button.addEventListener("click", () => {
-    sourceLanguage.value = item.sourceCode ?? "en";
-    targetLanguage.value = item.targetCode ?? "zh-CN";
-    sourceText.value = item.source;
-    resultText.textContent = item.result;
-    simplifiedText.textContent = "Simplified text will appear here.";
-    setStatus("Loaded");
-    updateLabels();
-    updateCount();
-    sourceText.focus();
-  });
-
-  const direction = document.createElement("span");
-  direction.className = "history-direction";
-  direction.textContent = `${getLanguage(item.sourceCode ?? "en").name} to ${
-    getLanguage(item.targetCode ?? "zh-CN").name
-  }`;
-
-  const source = document.createElement("span");
-  source.className = "history-source";
-  source.textContent = item.source;
-
-  const result = document.createElement("span");
-  result.className = "history-result";
-  result.textContent = item.result;
-
-  button.append(direction, source, result);
-  historyItem.append(button);
-  return historyItem;
-}
-
-function renderHistory() {
-  historyList.innerHTML = "";
-
-  if (history.length === 0) {
-    const empty = document.createElement("li");
-    empty.className = "empty-history";
-    empty.textContent = "Translated lines will stay here on this computer.";
-    historyList.append(empty);
-    return;
-  }
-
-  history.forEach((item) => {
-    historyList.append(createStoredTranslationItem(item));
-  });
-}
-
-function renderSaved() {
-  savedList.innerHTML = "";
-
-  if (savedTranslations.length === 0) {
-    const empty = document.createElement("li");
-    empty.className = "empty-history";
-    empty.textContent = "Save important translations here.";
-    savedList.append(empty);
-    return;
-  }
-
-  savedTranslations.forEach((item) => {
-    savedList.append(createStoredTranslationItem(item));
-  });
-}
-
-function renderPhrases() {
-  phraseList.innerHTML = "";
-  const sourceCode = sourceLanguage.value;
-  const hasCurrentLanguage = commonPhrases.some((item) => item.phrases[sourceCode]);
-
-  commonPhrases.forEach((item) => {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "phrase-chip";
-    button.textContent = `${item.intent}: ${item.phrases[sourceCode] ?? item.phrases.en}`;
-    button.addEventListener("click", () => {
-      if (!hasCurrentLanguage) {
-        sourceLanguage.value = "en";
-      }
-      sourceText.value = item.phrases[sourceLanguage.value] ?? item.phrases.en;
-      resultText.textContent = "Translation will appear here.";
-      simplifiedText.textContent = "Simplified text will appear here.";
-      updateLabels();
-      updateCount();
-      translateText();
-    });
-    phraseList.append(button);
-  });
-}
-
-function preserveCapitalization(original, replacement) {
-  if (original.toUpperCase() === original) {
-    return replacement.toUpperCase();
-  }
-
-  if (/^[A-Z]/.test(original)) {
-    return `${replacement.charAt(0).toUpperCase()}${replacement.slice(1)}`;
-  }
-
-  return replacement;
-}
-
-function simplifyEnglishText(text) {
-  const replaced = text.replace(/\b[A-Za-z]+(?:'[A-Za-z]+)?\b/g, (word) => {
-    const simple = simplerWords.get(word.toLowerCase());
-    return simple ? preserveCapitalization(word, simple) : word;
-  });
-
-  return replaced
-    .replace(/\b(in order to)\b/gi, "to")
-    .replace(/\b(due to the fact that)\b/gi, "because")
-    .replace(/\b(at this point in time)\b/gi, "now")
-    .replace(/\b(a large number of)\b/gi, "many")
-    .replace(/\b(prior to)\b/gi, "before")
-    .replace(/\b(subsequent to)\b/gi, "after")
-    .replace(/\s+/g, " ")
-    .replace(/\s+([,.!?;:])/g, "$1")
-    .trim();
 }
 
 function simplifyInput() {
@@ -1000,19 +1130,20 @@ function simplifyInput() {
   const simplified = simplifyEnglishText(text);
   simplifiedText.textContent = simplified === text ? "This already looks simple." : simplified;
   setStatus("Simplified");
+  updateInsights();
   updateEnglishExplanation();
 }
 
 function useSimplifiedText() {
   const text = simplifiedText.textContent.trim();
 
-  if (!text || text === "Simplified text will appear here." || text === "This already looks simple.") {
+  if (!text || text === placeholderSimplified || text === "This already looks simple.") {
     setStatus("Nothing simplified");
     return;
   }
 
   sourceText.value = text;
-  resultText.textContent = "Translation will appear here.";
+  resultText.textContent = placeholderResult;
   updateCount();
   setStatus("Simplified text loaded");
   sourceText.focus();
@@ -1026,7 +1157,7 @@ function explainInEnglish() {
 async function copyResult() {
   const text = resultText.textContent.trim();
 
-  if (!text || text === "Translation will appear here.") {
+  if (!text || text === placeholderResult) {
     setStatus("Nothing to copy");
     return;
   }
@@ -1052,8 +1183,22 @@ function chooseVoice(languageCode) {
     return null;
   }
 
-  if (languageCode.startsWith("en")) {
-    const preferredEnglishNames = ["Samantha", "Alex", "Google US English", "Microsoft Aria", "Daniel"];
+  const normalized = languageCode.toLowerCase();
+  const exact = availableVoices.find((voice) => voice.lang.toLowerCase() === normalized);
+  if (exact) {
+    return exact;
+  }
+
+  if (normalized.startsWith("en")) {
+    const preferredEnglishNames = [
+      "Samantha",
+      "Alex",
+      "Google US English",
+      "Google UK English Female",
+      "Microsoft Aria",
+      "Microsoft Jenny",
+      "Daniel",
+    ];
     const preferred = availableVoices.find(
       (voice) =>
         voice.lang.toLowerCase().startsWith("en") &&
@@ -1066,26 +1211,39 @@ function chooseVoice(languageCode) {
   }
 
   return (
-    availableVoices.find((voice) => voice.lang.toLowerCase() === languageCode.toLowerCase()) ||
-    availableVoices.find((voice) => voice.lang.toLowerCase().startsWith(languageCode.slice(0, 2).toLowerCase())) ||
+    availableVoices.find((voice) => voice.lang.toLowerCase().startsWith(normalized.slice(0, 2))) ||
+    availableVoices.find((voice) => voice.lang.toLowerCase().includes(normalized.slice(0, 2))) ||
     null
   );
 }
 
+function speechRateFor(languageCode) {
+  if (languageCode.startsWith("en")) {
+    return 0.98;
+  }
+
+  if (languageCode.startsWith("zh") || languageCode.startsWith("ja")) {
+    return 0.9;
+  }
+
+  return 0.94;
+}
+
 function speakText(text, languageCode) {
-  if (!("speechSynthesis" in window) || !text || text === "Translation will appear here.") {
+  if (!("speechSynthesis" in window) || !text || text === placeholderResult) {
     setStatus("Speech unavailable");
     return;
   }
 
   window.speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = languageCode;
-  utterance.voice = chooseVoice(languageCode);
-  utterance.rate = languageCode.startsWith("en") ? 0.86 : languageCode.startsWith("zh") || languageCode.startsWith("ja") ? 0.9 : 1;
-  utterance.pitch = languageCode.startsWith("en") ? 1 : 1;
+  const voice = chooseVoice(languageCode);
+  utterance.lang = voice?.lang || languageCode;
+  utterance.voice = voice;
+  utterance.rate = speechRateFor(languageCode);
+  utterance.pitch = languageCode.startsWith("en") ? 1.02 : 1;
   window.speechSynthesis.speak(utterance);
-  setStatus("Speaking");
+  setStatus(voice ? `Speaking with ${voice.name}` : "Speaking");
 }
 
 function speakResult() {
@@ -1098,15 +1256,102 @@ function speakSource() {
   speakText(sourceText.value.trim(), source.speech);
 }
 
+function queueAutoTranslate() {
+  clearTimeout(autoTranslateTimer);
+
+  const text = sourceText.value.trim();
+  if (!text) {
+    return;
+  }
+
+  autoTranslateTimer = setTimeout(() => {
+    translateText();
+  }, 450);
+}
+
+async function translateText() {
+  const text = sourceText.value.trim();
+  const requestId = ++latestRequestId;
+
+  if (!text) {
+    resultText.textContent = "Type something first.";
+    setStatus("Waiting");
+    updatePronunciationPanels();
+    return;
+  }
+
+  if (sourceLanguage.value === targetLanguage.value) {
+    resultText.textContent = text;
+    renderDefinitions(
+      sourceLanguage.value === "en"
+        ? [{ text: simplifyEnglishText(text), quality: 0, description: "same-language simple rewrite" }]
+        : [],
+      "Multiple definitions",
+    );
+    setStatus("Same language");
+    updatePronunciationPanels();
+    saveHistory(text, text);
+    return;
+  }
+
+  if (activeRequest) {
+    activeRequest.abort();
+  }
+
+  activeRequest = new AbortController();
+  translateButton.disabled = true;
+  correctButton.disabled = true;
+  simplifyButton.disabled = true;
+  setStatus("Translating");
+  renderDefinitions([], "Multiple definitions");
+
+  try {
+    const translated = await translateOnline(text);
+    if (requestId !== latestRequestId) {
+      return;
+    }
+
+    resultText.textContent = translated.text;
+    renderDefinitions(getAlternativeTranslations(translated.matches, translated.text, text));
+    setStatus("Online result");
+    updatePronunciationPanels();
+    saveHistory(text, translated.text);
+  } catch (error) {
+    if (error.name === "AbortError") {
+      return;
+    }
+
+    const fallback = getOfflineTranslation(text);
+    if (requestId !== latestRequestId) {
+      return;
+    }
+
+    resultText.textContent =
+      fallback || "The online translator could not be reached. Try a short common phrase, or check the internet connection.";
+    setStatus(fallback ? "Local phrase book" : "Offline");
+    updatePronunciationPanels();
+
+    if (fallback) {
+      renderDefinitions([{ text: fallback, quality: 0, description: "local phrase match" }], "Multiple definitions");
+      saveHistory(text, fallback);
+    }
+  } finally {
+    translateButton.disabled = false;
+    correctButton.disabled = false;
+    simplifyButton.disabled = false;
+    activeRequest = null;
+  }
+}
+
 function swapLanguages() {
   const oldSource = sourceLanguage.value;
   const oldResult = resultText.textContent.trim();
   sourceLanguage.value = targetLanguage.value;
   targetLanguage.value = oldSource;
 
-  if (oldResult && oldResult !== "Translation will appear here.") {
+  if (oldResult && oldResult !== placeholderResult) {
     sourceText.value = oldResult;
-    resultText.textContent = "Translation will appear here.";
+    resultText.textContent = placeholderResult;
   }
 
   updateLabels();
@@ -1122,9 +1367,11 @@ translateForm.addEventListener("submit", (event) => {
 
 sourceText.addEventListener("input", () => {
   updateCount();
-  resultText.textContent = "Translation will appear here.";
+  resultText.textContent = placeholderResult;
+  updatePronunciationPanels();
   const suggestions = getSpellingSuggestions(sourceText.value);
-  renderDefinitions(suggestions, suggestions.length > 0 ? "Similar words" : "Other translations");
+  renderDefinitions(suggestions, suggestions.length ? "Similar words" : "Multiple definitions");
+  updateSpellingStatus(suggestions);
   queueAutoTranslate();
 });
 
@@ -1138,11 +1385,13 @@ sourceText.addEventListener("keydown", (event) => {
 
 sourceLanguage.addEventListener("change", () => {
   updateLabels();
+  updateCount();
   setStatus("Ready");
 });
 
 targetLanguage.addEventListener("change", () => {
   updateLabels();
+  updateCount();
   setStatus("Ready");
 });
 
@@ -1158,10 +1407,15 @@ saveButton.addEventListener("click", saveCurrentTranslation);
 
 clearButton.addEventListener("click", () => {
   sourceText.value = "";
-  resultText.textContent = "Translation will appear here.";
-  simplifiedText.textContent = "Simplified text will appear here.";
-  englishText.textContent = "English explanation will appear here.";
-  renderDefinitions([], "Other translations");
+  resultText.textContent = placeholderResult;
+  simplifiedText.textContent = placeholderSimplified;
+  englishText.textContent = placeholderEnglish;
+  sourcePronunciation.textContent = placeholderPronunciation;
+  resultPronunciation.textContent = placeholderTranslatedPronunciation;
+  spellingStatus.textContent = "No spelling suggestions yet.";
+  renderDefinitions([], "Multiple definitions");
+  updateExamples();
+  updateInsights();
   updateCount();
   setStatus("Cleared");
   sourceText.focus();
@@ -1195,16 +1449,16 @@ if ("serviceWorker" in navigator) {
 
 populateLanguages();
 refreshVoices();
-if ("speechSynthesis" in window) {
-  if (typeof window.speechSynthesis.addEventListener === "function") {
-    window.speechSynthesis.addEventListener("voiceschanged", refreshVoices);
-  } else {
-    window.speechSynthesis.onvoiceschanged = refreshVoices;
-  }
+
+if ("speechSynthesis" in window && typeof window.speechSynthesis.addEventListener === "function") {
+  window.speechSynthesis.addEventListener("voiceschanged", refreshVoices);
 }
-updateLabels();
-updateCount();
+
 renderHistory();
 renderSaved();
-renderDefinitions([], "Other translations");
-updateEnglishExplanation();
+renderPhrases();
+renderDefinitions([], "Multiple definitions");
+updateExamples();
+updateInsights();
+updateSpellingStatus([]);
+updateCount();
