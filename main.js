@@ -25,6 +25,7 @@ const sourceLabel = document.getElementById("sourceLabel");
 const resultLabel = document.getElementById("resultLabel");
 const sourceLanguage = document.getElementById("sourceLanguage");
 const targetLanguage = document.getElementById("targetLanguage");
+const definitionsTitle = document.getElementById("definitionsTitle");
 const definitionList = document.getElementById("definitionList");
 const simplifiedText = document.getElementById("simplifiedText");
 const englishText = document.getElementById("englishText");
@@ -220,7 +221,33 @@ const englishMeanings = new Map([
   ["pronunciation", "the way a word is spoken"],
   ["unfinished", "not completed yet"],
   ["word", "a single unit of language with meaning"],
+  ["friend", "a person you know well and like"],
+  ["receive", "to get something that is sent or given to you"],
+  ["address", "the details that show where a place is"],
+  ["separate", "to divide or keep things apart"],
+  ["definitely", "without any doubt"],
+  ["because", "for the reason that"],
+  ["weird", "strange or unusual"],
+  ["achieve", "to successfully reach a goal"],
+  ["opposite", "completely different or facing the other way"],
 ]);
+
+const englishWordBank = [
+  ...new Set([
+    ...englishMeanings.keys(),
+    ...typoFallbacks.values(),
+    ...simplerWords.keys(),
+    ...simplerWords.values(),
+    "cost",
+    "nearest",
+    "english",
+    "definition",
+    "similar",
+    "spelling",
+    "mistake",
+    "update",
+  ]),
+];
 
 let history = loadHistory();
 let savedTranslations = loadSaved();
@@ -262,7 +289,7 @@ function updateLabels() {
   sourceLabel.textContent = source.name;
   resultLabel.textContent = target.name;
   sourceText.placeholder = source.placeholder;
-  renderDefinitions([]);
+  renderDefinitions([], "Other translations");
   renderPhrases();
   updateDetails();
 }
@@ -315,6 +342,77 @@ function explainEnglishValue(text) {
 
 function updateEnglishExplanation() {
   englishText.textContent = explainEnglishValue(getEnglishSourceText());
+}
+
+function levenshteinDistance(a, b) {
+  const rows = a.length + 1;
+  const cols = b.length + 1;
+  const matrix = Array.from({ length: rows }, () => Array(cols).fill(0));
+
+  for (let row = 0; row < rows; row += 1) {
+    matrix[row][0] = row;
+  }
+
+  for (let col = 0; col < cols; col += 1) {
+    matrix[0][col] = col;
+  }
+
+  for (let row = 1; row < rows; row += 1) {
+    for (let col = 1; col < cols; col += 1) {
+      const cost = a[row - 1] === b[col - 1] ? 0 : 1;
+      matrix[row][col] = Math.min(
+        matrix[row - 1][col] + 1,
+        matrix[row][col - 1] + 1,
+        matrix[row - 1][col - 1] + cost,
+      );
+    }
+  }
+
+  return matrix[a.length][b.length];
+}
+
+function getWordMeaning(word) {
+  return englishMeanings.get(word.toLowerCase()) ?? "an English word with a similar spelling";
+}
+
+function getSpellingSuggestions(text) {
+  if (sourceLanguage.value !== "en") {
+    return [];
+  }
+
+  const words = text.toLowerCase().match(/\b[a-z]{3,}\b/g) ?? [];
+  const uniqueWords = [...new Set(words)];
+  const suggestions = [];
+
+  uniqueWords.forEach((word) => {
+    const exactKnown =
+      englishWordBank.includes(word) ||
+      commonPhrases.some((item) => Object.values(item.phrases).some((phrase) => phrase.toLowerCase().includes(word)));
+
+    if (exactKnown) {
+      return;
+    }
+
+    const ranked = englishWordBank
+      .map((candidate) => ({
+        text: candidate,
+        distance: levenshteinDistance(word, candidate),
+      }))
+      .filter((candidate) => candidate.distance <= 2 || candidate.text.startsWith(word) || word.startsWith(candidate.text))
+      .sort((a, b) => a.distance - b.distance || a.text.length - b.text.length)
+      .slice(0, 3);
+
+    ranked.forEach((candidate) => {
+      suggestions.push({
+        text: candidate.text,
+        quality: 0,
+        note: `${word} -> ${candidate.text}`,
+        description: getWordMeaning(candidate.text),
+      });
+    });
+  });
+
+  return suggestions.slice(0, 6);
 }
 
 function countWords(value) {
@@ -498,7 +596,7 @@ async function translateText() {
   correctButton.disabled = true;
   simplifyButton.disabled = true;
   setStatus("Translating");
-  renderDefinitions([]);
+  renderDefinitions([], "Other translations");
 
   try {
     const translated = await translateOnline(text);
@@ -567,13 +665,17 @@ function getAlternativeTranslations(matches, mainTranslation) {
     .slice(0, 5);
 }
 
-function renderDefinitions(items) {
+function renderDefinitions(items, title = "Other translations") {
+  definitionsTitle.textContent = title;
   definitionList.innerHTML = "";
 
   if (items.length === 0) {
     const item = document.createElement("li");
     item.className = "empty-definition";
-    item.textContent = "Translate a word or sentence to see other possible meanings.";
+    item.textContent =
+      title === "Similar words"
+        ? "When a word looks misspelled, similar English words will appear here."
+        : "Translate a word or sentence to see other possible meanings.";
     definitionList.append(item);
     return;
   }
@@ -591,7 +693,10 @@ function renderDefinitions(items) {
     });
 
     const score = document.createElement("span");
-    score.textContent = definition.quality ? `${Math.round(definition.quality * 100)}% match` : "possible meaning";
+    score.textContent =
+      definition.note ||
+      definition.description ||
+      (definition.quality ? `${Math.round(definition.quality * 100)}% match` : "possible meaning");
 
     item.append(text, score);
     definitionList.append(item);
@@ -663,10 +768,18 @@ async function correctSpelling() {
       sourceText.value = corrected;
       setStatus("Spelling corrected");
     }
+    const suggestions = getSpellingSuggestions(text);
+    if (suggestions.length > 0) {
+      renderDefinitions(suggestions, "Similar words");
+    }
   } catch {
     const corrected = applyLocalCorrections(text);
     sourceText.value = corrected;
     setStatus(corrected === text ? "No local spelling changes" : "Corrected locally");
+    const suggestions = getSpellingSuggestions(text);
+    if (suggestions.length > 0) {
+      renderDefinitions(suggestions, "Similar words");
+    }
   } finally {
     correctButton.disabled = false;
     updateCount();
@@ -1010,7 +1123,8 @@ translateForm.addEventListener("submit", (event) => {
 sourceText.addEventListener("input", () => {
   updateCount();
   resultText.textContent = "Translation will appear here.";
-  renderDefinitions([]);
+  const suggestions = getSpellingSuggestions(sourceText.value);
+  renderDefinitions(suggestions, suggestions.length > 0 ? "Similar words" : "Other translations");
   queueAutoTranslate();
 });
 
@@ -1047,7 +1161,7 @@ clearButton.addEventListener("click", () => {
   resultText.textContent = "Translation will appear here.";
   simplifiedText.textContent = "Simplified text will appear here.";
   englishText.textContent = "English explanation will appear here.";
-  renderDefinitions([]);
+  renderDefinitions([], "Other translations");
   updateCount();
   setStatus("Cleared");
   sourceText.focus();
@@ -1068,10 +1182,14 @@ clearSavedButton.addEventListener("click", () => {
 });
 
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./sw.js").catch(() => {
-      setStatus("Install cache unavailable");
-    });
+  window.addEventListener("load", async () => {
+    try {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(registrations.map((registration) => registration.unregister()));
+      setStatus("Ready");
+    } catch {
+      setStatus("Ready");
+    }
   });
 }
 
@@ -1088,5 +1206,5 @@ updateLabels();
 updateCount();
 renderHistory();
 renderSaved();
-renderDefinitions([]);
+renderDefinitions([], "Other translations");
 updateEnglishExplanation();
